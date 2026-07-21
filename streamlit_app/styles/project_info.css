@@ -1,0 +1,208 @@
+/* Project Information tab layout and panels */
+
+:root {
+    --project-info-panel-height: 380px;
+}
+
+.project-info-panel {
+    background-color: var(--surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 18px 22px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: var(--project-info-panel-height);
+    min-height: var(--project-info-panel-height);
+    max-height: var(--project-info-panel-height);
+}
+
+.project-info-panel .surface-panel-card__header {
+    margin-bottom: 16px;
+}
+
+.project-info-panel__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.project-info-text {
+    margin: 0 0 14px;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--text-primary);
+}
+
+.project-info-text:last-child {
+    margin-bottom: 0;
+}
+
+/* Zero-height iframe wrapper padding for the row-gap helper */
+[data-testid="stVerticalBlock"]:has(.project-info-layout-marker) [data-testid="stHtml"] {
+    margin-bottom: 0 !important;
+}
+
+/* Methodology flow */
+
+.methodology-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 6px;
+    padding-top: 4px;
+}
+
+.project-info-panel--methodology .project-info-panel__body {
+    display: flex;
+    align-items: center;
+}
+
+.methodology-flow__step {
+    background-color: rgba(37, 99, 235, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 999px;
+    padding: 7px 12px;
+}
+
+.methodology-flow__label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.methodology-flow__arrow {
+    color: var(--accent-bright);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+/* Team grid */
+
+.project-team {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 16px;
+    align-content: center;
+    height: 100%;
+}
+
+.project-team__member {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+}
+
+.project-team__avatar {
+    width: 112px;
+    height: 112px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid var(--border-subtle);
+    background-color: var(--surface);
+}
+
+.project-team__avatar--fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 112px;
+    height: 112px;
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: var(--accent-bright);
+    background: linear-gradient(145deg, rgba(37, 99, 235, 0.22), rgba(17, 29, 46, 0.95));
+}
+
+.project-team__name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Tech stack grid */
+
+.project-info-panel--tech .project-info-panel__body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-tech {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px 10px;
+    width: 100%;
+    height: 100%;
+    align-content: center;
+    justify-items: center;
+    place-content: center;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
+.project-tech__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.project-tech__icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.project-tech__icon {
+    width: 48px;
+    height: 48px;
+    display: block;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.project-tech__icon--fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent-bright);
+    background: linear-gradient(145deg, rgba(37, 99, 235, 0.22), rgba(17, 29, 46, 0.95));
+    border: 1px solid var(--border-subtle);
+}
+
+.project-tech__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.2;
+}
+
+@media (max-width: 1100px) {
+    :root {
+        --project-info-panel-height: 420px;
+    }
+
+    .project-tech {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .methodology-flow__label {
+        white-space: normal;
+    }
+}
