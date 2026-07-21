@@ -1,0 +1,226 @@
+/* Flight Explorer tab layout
+   Tune spacing via --explorer-main-margin-top (right column offset). */
+
+:root {
+    --explorer-compact-height: 360px;
+    --explorer-section-gap: 15px;
+    --explorer-main-margin-top: 40px;
+    --explorer-chrome-height: calc(1rem + 3.75rem + 3rem + 2.25rem + 2rem + 0.5rem);
+    --explorer-shell-height: calc(100vh - var(--explorer-chrome-height));
+    --explorer-flight-log-height: calc(
+        var(--explorer-shell-height) - var(--explorer-compact-height) - var(--explorer-section-gap)
+    );
+}
+
+.page-subtitle--explorer {
+    margin-bottom: 0 !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.explorer-layout-marker) > [data-testid="element-container"]:has(.page-subtitle--explorer) {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    margin-bottom: 15px !important;
+    padding-bottom: 0 !important;
+}
+
+.explorer-layout-marker {
+    display: none;
+}
+
+[data-testid="stVerticalBlock"]:has(.explorer-layout-marker) {
+    display: flex !important;
+    flex-direction: column !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.explorer-layout-marker) > [data-testid="stHorizontalBlock"]:has(.explorer-filter-panel-marker) {
+    flex: 0 0 auto !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.explorer-layout-marker) > [data-testid="element-container"]:last-of-type {
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.explorer-layout-marker) > [data-testid="element-container"]:last-of-type iframe {
+    height: 0 !important;
+    min-height: 0 !important;
+    border: none !important;
+}
+
+[data-testid="stHorizontalBlock"]:has(.explorer-filter-panel-marker) {
+    align-items: stretch !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    height: var(--explorer-shell-height) !important;
+    min-height: var(--explorer-shell-height) !important;
+    max-height: var(--explorer-shell-height) !important;
+    overflow: hidden !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.explorer-main-panel-marker):not(:has(.explorer-layout-marker)) {
+    margin-top: var(--explorer-main-margin-top) !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) {
+    background-color: var(--surface-elevated) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 8px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    align-self: stretch !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) > div {
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) > div > [data-testid="stVerticalBlock"] {
+    gap: 0.35rem !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) div[data-testid="stSelectbox"] {
+    margin-bottom: 0 !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) div[data-testid="stSelectbox"] label {
+    margin-bottom: 2px !important;
+    font-size: 0.78rem !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) div.stButton {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding-top: 8px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: var(--surface-elevated) !important;
+    z-index: 1 !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) {
+    align-self: stretch !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) > div {
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--explorer-section-gap) !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    box-sizing: border-box !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"]:has(.explorer-top-panel) {
+    flex: 0 0 var(--explorer-compact-height) !important;
+    height: var(--explorer-compact-height) !important;
+    min-height: var(--explorer-compact-height) !important;
+    max-height: var(--explorer-compact-height) !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:has(.explorer-flight-log-marker) + [data-testid="element-container"],
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:last-of-type {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: var(--explorer-flight-log-height) !important;
+    max-height: var(--explorer-flight-log-height) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) .explorer-flight-log-marker {
+    display: none;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) .explorer-flight-log-marker + div[data-testid="stHtml"],
+[data-testid="column"]:has(.explorer-main-panel-marker) .explorer-flight-log-marker ~ [data-testid="element-container"] [data-testid="stHtml"],
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:last-of-type [data-testid="stHtml"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: var(--explorer-flight-log-height) !important;
+    max-height: var(--explorer-flight-log-height) !important;
+}
+
+[data-testid="column"]:has(.explorer-top-panel) {
+    align-self: start;
+}
+
+[data-testid="column"]:has(.explorer-top-panel) [data-testid="stHtml"] {
+    height: var(--explorer-compact-height) !important;
+    min-height: var(--explorer-compact-height) !important;
+    max-height: var(--explorer-compact-height) !important;
+}
+
+[data-testid="column"]:has(.explorer-top-panel) [data-testid="stHtml"] iframe {
+    display: block;
+    border: none;
+    width: 100% !important;
+    height: var(--explorer-compact-height) !important;
+    min-height: var(--explorer-compact-height) !important;
+    max-height: var(--explorer-compact-height) !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:has(.explorer-flight-log-marker) + [data-testid="element-container"] > div,
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:last-of-type > div {
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) [data-testid="stHtml"]:last-of-type {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: var(--explorer-flight-log-height) !important;
+    max-height: var(--explorer-flight-log-height) !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) [data-testid="stHtml"]:last-of-type iframe {
+    flex: 1 1 0 !important;
+    height: var(--explorer-flight-log-height) !important;
+    min-height: var(--explorer-flight-log-height) !important;
+    max-height: var(--explorer-flight-log-height) !important;
+    width: 100% !important;
+    display: block;
+    border: none;
+}

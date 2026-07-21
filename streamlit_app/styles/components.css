@@ -1,0 +1,253 @@
+/* Shared UI components: cards, header, KPIs, insight, forms, tabs */
+
+.surface-card,
+.kpi-card,
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: var(--surface-elevated) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 8px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] > [data-testid="stVerticalBlock"] {
+    background-color: transparent !important;
+}
+
+[data-testid="column"] > div {
+    background-color: transparent;
+}
+
+.surface-panel-card__header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-label);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.surface-panel-card__header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    color: var(--accent-bright);
+    flex-shrink: 0;
+}
+
+.panel-icon svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+[data-testid="stHtml"] {
+    margin-bottom: 0 !important;
+}
+
+[data-testid="stHtml"] iframe {
+    display: block;
+    border: none;
+}
+
+/* Plotly transparency */
+div[data-testid="stPlotlyChart"],
+div[data-testid="stPlotlyChart"] > div,
+div[data-testid="stPlotlyChart"] iframe,
+div[data-testid="stPlotlyChart"] .js-plotly-plot,
+div[data-testid="stPlotlyChart"] .plot-container,
+div[data-testid="stPlotlyChart"] .svg-container,
+div[data-testid="stPlotlyChart"] .main-svg,
+div[data-testid="stElementContainer"]:has([data-testid="stPlotlyChart"]),
+div[data-testid="element-container"]:has([data-testid="stPlotlyChart"]) {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+div[data-testid="stTable"],
+div[data-testid="stDataFrame"] {
+    background-color: transparent !important;
+}
+
+.app-header {
+    background-color: var(--surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-header__brand {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.app-header__brand-accent {
+    color: var(--accent-bright);
+}
+
+.app-header__brand-title {
+    color: var(--text-primary);
+}
+
+.app-header__status {
+    background-color: rgba(46, 204, 113, 0.15);
+    color: var(--success);
+    border: 1px solid var(--success);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.kpi-card {
+    min-height: 118px;
+}
+
+.kpi-card__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-label);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+}
+
+.kpi-card__value {
+    font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.kpi-card__delta {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.kpi-card__delta--positive {
+    color: var(--success);
+}
+
+.kpi-card__delta--negative {
+    color: var(--danger);
+}
+
+.insight-card {
+    background-color: var(--surface-insight);
+    border: 1px solid var(--border-insight);
+    border-left: 4px solid var(--accent-cyan);
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin-top: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.insight-card__content {
+    flex: 1;
+}
+
+.insight-card__title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.insight-card__body {
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.insight-card__sparkle {
+    color: var(--accent-bright);
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 0.85;
+    padding-top: 2px;
+}
+
+div[data-baseweb="select"] > div {
+    background-color: #162032 !important;
+    border: 1px solid #23334d !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+}
+
+div[data-baseweb="select"]:hover > div {
+    border-color: var(--accent) !important;
+}
+
+div[data-testid="stSelectbox"] label {
+    color: var(--text-secondary) !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+}
+
+div.stButton > button {
+    background-color: #1b263b !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid #2a3b5c !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    margin-top: 8px !important;
+}
+
+div.stButton > button:hover {
+    background-color: var(--accent) !important;
+    color: #ffffff !important;
+    border-color: var(--accent-bright) !important;
+}
+
+div[data-baseweb="tab-list"] {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--border) !important;
+    gap: 16px !important;
+}
+
+button[data-baseweb="tab"] {
+    background-color: transparent !important;
+    color: var(--text-secondary) !important;
+    font-weight: 500 !important;
+    padding: 10px 12px !important;
+    border: none !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+    background-color: transparent !important;
+    color: var(--accent-bright) !important;
+    font-weight: 700 !important;
+}
+
+div[data-baseweb="tab-highlight"] {
+    background-color: var(--accent) !important;
+    height: 3px !important;
+    border-radius: 2px !important;
+}
