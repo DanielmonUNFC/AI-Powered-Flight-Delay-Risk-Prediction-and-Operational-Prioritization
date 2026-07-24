@@ -7,8 +7,45 @@ from typing import Optional
 from services.prediction_features import PredictionFeatures, build_prediction_features
 
 
+def _use_live_data() -> bool:
+    """Return True when Databricks-backed dashboard data should be used."""
+    try:
+        from services.data_access import databricks_configured
+
+        return databricks_configured()
+    except ImportError:
+        return False
+
+
+def _format_count(value: float) -> str:
+    return f"{int(value):,}"
+
+
 def get_overview_kpis():
     """Returns top-level operational metrics for the Overview page."""
+    if _use_live_data():
+        from services.data_access import load_dashboard_section
+
+        overview_df = load_dashboard_section("overview_kpi")
+        lookup = {
+            row["metric_name"]: row
+            for _, row in overview_df.iterrows()
+        }
+        return {
+            "total_flights": _format_count(lookup["total_flights"]["metric_value"]),
+            "total_flights_sub": "Notebook 11 output",
+            "total_flights_positive": True,
+            "avg_delay_rate": f"{lookup['avg_delay_rate']['metric_value']:.1f}%",
+            "avg_delay_sub": "Model-eligible flights",
+            "avg_delay_positive": False,
+            "avg_arr_delay": f"{lookup['avg_arr_delay']['metric_value']:.1f} min",
+            "avg_arr_sub": "Average ArrDelay",
+            "avg_arr_positive": False,
+            "cancel_rate": f"{lookup['cancel_rate']['metric_value']:.2f}%",
+            "cancel_rate_sub": "Cancelled flights",
+            "cancel_rate_positive": True,
+        }
+
     return {
         "total_flights": "6,842,105",
         "total_flights_sub": "+1.2% YoY",
@@ -26,6 +63,17 @@ def get_overview_kpis():
 
 def get_monthly_delay_trend():
     """Provides monthly delay rate performance for 2025."""
+    if _use_live_data():
+        from services.data_access import load_dashboard_section
+
+        monthly_df = load_dashboard_section("monthly_trend")
+        return pd.DataFrame(
+            {
+                "Month": monthly_df["dimension_1"],
+                "DelayRate": monthly_df["metric_value"].astype(float),
+            }
+        )
+
     return pd.DataFrame({
         "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         "DelayRate": [18.2, 16.5, 19.4, 17.8, 20.1, 28.5, 27.2, 23.4, 15.8, 16.2, 17.5, 29.1]
@@ -33,6 +81,17 @@ def get_monthly_delay_trend():
 
 def get_delay_causes_breakdown():
     """Provides accumulated delay minutes distribution by cause."""
+    if _use_live_data():
+        from services.data_access import load_dashboard_section
+
+        causes_df = load_dashboard_section("delay_cause")
+        return pd.DataFrame(
+            {
+                "Cause": causes_df["dimension_1"],
+                "Percentage": causes_df["metric_value"].astype(float),
+            }
+        )
+
     return pd.DataFrame({
         "Cause": ["Late Aircraft", "Carrier", "Weather", "NAS"],
         "Percentage": [38, 26, 18, 18],
@@ -40,6 +99,14 @@ def get_delay_causes_breakdown():
 
 def get_explorer_data():
     """Generates a rich synthetic dataset ensuring data presence across common filter combinations."""
+    if _use_live_data():
+        from services.data_access import load_explorer_data
+
+        explorer_df = load_explorer_data()
+        if "DepWindow" not in explorer_df.columns and "DepartureWindow" in explorer_df.columns:
+            explorer_df["DepWindow"] = explorer_df["DepartureWindow"]
+        return explorer_df
+
     carriers = ["Delta Air Lines", "American Airlines", "United Airlines", "Southwest Airlines", "JetBlue"]
     origins = ["KATL", "KORD", "KDFW", "KDEN", "KJFK"]
     dests = ["KLAX", "KMIA", "KSFO", "KBOS", "KSEA", "KORD", "KDFW"]
@@ -235,7 +302,12 @@ def _features_to_dict(features: PredictionFeatures) -> dict[str, object]:
 
 
 def get_global_feature_importance() -> pd.DataFrame:
-    """Return mock global SHAP feature importance values."""
+    """Return global SHAP feature importance values."""
+
+    if _use_live_data():
+        from services.data_access import load_global_feature_importance
+
+        return load_global_feature_importance()
 
     return pd.DataFrame(
         {
@@ -269,6 +341,11 @@ def get_global_feature_importance() -> pd.DataFrame:
 
 def get_local_prediction_explanation() -> dict[str, object]:
     """Return a mock local SHAP explanation for one flight."""
+
+    if _use_live_data():
+        from services.data_access import load_local_prediction_explanation
+
+        return load_local_prediction_explanation()
 
     return {
         "flight_id": "DL882",

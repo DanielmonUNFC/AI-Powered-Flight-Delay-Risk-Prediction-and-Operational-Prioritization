@@ -165,8 +165,8 @@ RESEARCH_QUESTIONS: Final[ResearchQuestionsSection] = ResearchQuestionsSection(
         ResearchQuestion("RQ1", "Predict Delay Risk"),
         ResearchQuestion("RQ2", "Delay Factors"),
         ResearchQuestion("RQ3", "Operational Differences"),
-        ResearchQuestion("RQ4", "Explainability"),
-        ResearchQuestion("RQ5", "Operational Prioritization"),
+        ResearchQuestion("RQ4", "Operational Prioritization"),
+        ResearchQuestion("RQ5", "Explainability"),
     ),
 )
 
@@ -187,6 +187,7 @@ METHODOLOGY_STEPS: Final[tuple[str, ...]] = (
     "Model Evaluation",
     "SHAP Explainability",
     "Operational Prioritization",
+    "Dashboard Data Preparation",
 )
 
 TECH_STACK_SECTION: Final[TechStackSection] = TechStackSection(

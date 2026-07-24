@@ -1,4 +1,4 @@
-"""Prescriptive flight prioritization mock engine (Notebook 08 + 10 alignment)."""
+"""Prescriptive flight prioritization engine aligned with notebooks 10 and 11."""
 
 from __future__ import annotations
 
@@ -73,6 +73,40 @@ _FLIGHT_POOL: tuple[dict[str, object], ...] = (
 )
 
 
+def _use_live_data() -> bool:
+    try:
+        from services.data_access import databricks_configured
+
+        return databricks_configured()
+    except ImportError:
+        return False
+
+
+def _normalize_prioritization_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    """Map notebook 10 column names to the Streamlit UI schema."""
+    if frame.empty:
+        return frame
+
+    rename_map = {
+        "flight_label": "Flight",
+        "airline_code": "Airline",
+        "origin_airport": "Origin",
+        "destination_airport": "Destination",
+        "scheduled_departure_text": "SchedDep",
+        "delay_probability": "DelayProb",
+        "risk_level": "RiskLevel",
+        "priority_score": "PriorityScore",
+        "recommendation": "Recommendation",
+        "shap_main_driver": "ShapMainDriver",
+        "selected": "Selected",
+        "priority_rank": "Priority",
+    }
+    normalized = frame.rename(columns=rename_map)
+    if "Selected" in normalized.columns:
+        normalized["Selected"] = normalized["Selected"].astype(bool)
+    return normalized
+
+
 def normalize_capacity_k(capacity_k: int) -> int:
     """Return a supported operational capacity value."""
     if capacity_k in CAPACITY_K_OPTIONS:
@@ -82,6 +116,17 @@ def normalize_capacity_k(capacity_k: int) -> int:
 
 def get_prioritization_pool() -> pd.DataFrame:
     """Return the ranked high-risk flight pool used for prescriptive selection."""
+    if _use_live_data():
+        from services.data_access import load_prioritization_results
+
+        ranking = load_prioritization_results(DEFAULT_CAPACITY_K)
+        ranking = _normalize_prioritization_frame(ranking)
+        if not ranking.empty:
+            return ranking.sort_values(
+                by=["PriorityScore", "DelayProb"],
+                ascending=[False, False],
+            ).reset_index(drop=True)
+
     rows = []
     for entry in _FLIGHT_POOL:
         delay_prob = float(entry["DelayProb"])
@@ -114,8 +159,21 @@ def build_prioritization_summary(
     *,
     capacity_k: int,
     selected_count: int,
+    pool: pd.DataFrame | None = None,
 ) -> PrioritizationSummary:
     """Build summary KPI values for the prioritization tab."""
+    if pool is None:
+        pool = get_prioritization_pool()
+
+    if _use_live_data() and not pool.empty:
+        return PrioritizationSummary(
+            flights_analyzed=len(pool),
+            critical_risk=int((pool["RiskLevel"] == "CRITICAL").sum()),
+            high_risk=int(pool["RiskLevel"].isin(["HIGH", "CRITICAL"]).sum()),
+            flights_selected=selected_count,
+            capacity_k=normalize_capacity_k(capacity_k),
+        )
+
     return PrioritizationSummary(
         flights_analyzed=FLIGHTS_ANALYZED,
         critical_risk=CRITICAL_RISK_COUNT,
@@ -169,6 +227,15 @@ def build_prioritization_ranking(
     capacity_k: int = DEFAULT_CAPACITY_K,
 ) -> pd.DataFrame:
     """Return the ranked table with selection flags for the current capacity K."""
+    if _use_live_data():
+        from services.data_access import load_prioritization_results
+
+        ranking = _normalize_prioritization_frame(
+            load_prioritization_results(normalize_capacity_k(capacity_k))
+        )
+        if not ranking.empty:
+            return ranking
+
     if pool is None:
         pool = get_prioritization_pool()
 

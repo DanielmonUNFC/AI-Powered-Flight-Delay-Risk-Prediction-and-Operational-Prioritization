@@ -600,3 +600,59 @@ RESEARCH_QUESTIONS = {
     "RQ4": "Can prescriptive analytics improve operational decision-making by prioritizing high-risk flights under limited resources?",
     "RQ5": "Can Explainable Artificial Intelligence (SHAP) improve the interpretability of flight delay predictions for airline operations?",
 }
+
+
+# ============================================================
+# Operational prioritization configuration
+# ============================================================
+
+PREDICTIONS_DELTA_PATH = f"{PROCESSED_PATH}/flight_predictions"
+PRIORITIZATION_RESULTS_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_prioritization_results"
+)
+PRIORITIZATION_EVALUATION_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_prioritization_evaluation"
+)
+PRIORITIZATION_RESULTS_PATH = f"{PROCESSED_PATH}/flight_prioritization_results"
+PRIORITIZATION_EVALUATION_PATH = (
+    f"{PROCESSED_PATH}/flight_prioritization_evaluation"
+)
+
+CAPACITY_K_OPTIONS = (10, 25, 50, 100)
+DEFAULT_CAPACITY_K = 25
+MAX_FLIGHTS_PER_AIRPORT = 5
+MAX_FLIGHTS_PER_AIRLINE = 4
+PRIORITIZATION_POOL_MIN_PROB = HIGH_RISK_THRESHOLD
+
+SCORING_START_DATE = VALIDATION_START_DATE
+SCORING_END_DATE = VALIDATION_END_DATE
+
+RISK_RECOMMENDATIONS = {
+    "LOW": "Routine Monitoring",
+    "MEDIUM": "Increased Operational Monitoring",
+    "HIGH": "Priority Operational Review",
+    "CRITICAL": "Immediate Operational Assessment",
+}
+
+CRITICAL_RISK_THRESHOLD = 0.80
+MEDIUM_RISK_THRESHOLD = LOW_RISK_THRESHOLD
+
+
+# ============================================================
+# Dashboard preparation configuration
+# ============================================================
+
+DASHBOARD_DELTA_PATH = f"{PROCESSED_PATH}/flight_dashboard"
+DASHBOARD_METADATA_PATH = f"{MODELS_PATH}/dashboard_metadata.json"
+DASHBOARD_EXPLORER_TABLE = f"{CATALOG}.{SCHEMA}.flight_dashboard_explorer"
+DASHBOARD_EXPLORER_PATH = f"{PROCESSED_PATH}/flight_dashboard_explorer"
+DASHBOARD_INSIGHTS_TABLE = f"{CATALOG}.{SCHEMA}.flight_dashboard_insights"
+DASHBOARD_INSIGHTS_PATH = f"{PROCESSED_PATH}/flight_dashboard_insights"
+
+DELAY_CAUSE_LABELS = {
+    "CARRIER_DELAY": "Carrier",
+    "WEATHER_DELAY": "Weather",
+    "NAS_DELAY": "NAS",
+    "SECURITY_DELAY": "Security",
+    "LATE_AIRCRAFT_DELAY": "Late Aircraft",
+}

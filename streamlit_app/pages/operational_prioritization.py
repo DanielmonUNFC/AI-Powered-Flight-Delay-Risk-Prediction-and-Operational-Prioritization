@@ -42,6 +42,7 @@ def render_operational_prioritization_page() -> None:
     summary = build_prioritization_summary(
         capacity_k=capacity_k,
         selected_count=selected_count,
+        pool=pool,
     )
     render_prioritization_summary_panel(format_summary_values(summary))
 
