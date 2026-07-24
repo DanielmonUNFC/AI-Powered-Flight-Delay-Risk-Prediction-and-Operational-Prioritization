@@ -17,6 +17,11 @@ RAW_PATH = f"{VOLUME_PATH}/raw"
 REFERENCE_PATH = f"{VOLUME_PATH}/reference"
 EXTERNAL_PATH = f"{VOLUME_PATH}/external"
 SAMPLES_PATH = f"{VOLUME_PATH}/samples"
+PROCESSED_PATH = f"{VOLUME_PATH}/processed"
+
+# Processed Delta file locations
+CLEAN_DELTA_PATH = f"{PROCESSED_PATH}/flights_clean"
+FEATURES_DELTA_PATH = f"{PROCESSED_PATH}/flights_features"
 
 # ============================================================
 # Reference files
@@ -150,7 +155,9 @@ ORIGIN_COLUMN = "ORIGIN"
 DESTINATION_COLUMN = "DEST"
 
 ORIGIN_CITY_COLUMN = "ORIGIN_CITY_NAME"
+ORIGIN_STATE_COLUMN = "ORIGIN_STATE_NM"
 DESTINATION_CITY_COLUMN = "DEST_CITY_NAME"
+DESTINATION_STATE_COLUMN = "DEST_STATE_NM"
 
 
 # ============================================================
@@ -166,6 +173,11 @@ CANCELLATION_CODE_COLUMN = "CANCELLATION_CODE"
 # ============================================================
 
 DISTANCE_COLUMN = "DISTANCE"
+TAXI_OUT_COLUMN = "TAXI_OUT"
+TAXI_IN_COLUMN = "TAXI_IN"
+SCHEDULED_ELAPSED_TIME_COLUMN = "CRS_ELAPSED_TIME"
+ACTUAL_ELAPSED_TIME_COLUMN = "ACTUAL_ELAPSED_TIME"
+AIR_TIME_COLUMN = "AIR_TIME"
 
 # ============================================================
 # Delay-related columns
@@ -185,13 +197,210 @@ DELAY_CAUSE_COLUMNS = [
     "LATE_AIRCRAFT_DELAY",
 ]
 
-
-# ============================================================
-# Model target configuration
-# ============================================================
-
 TARGET_COLUMN = ARRIVAL_DELAY_FLAG_COLUMN
 DELAY_THRESHOLD_MINUTES = 15
+
+
+# ============================================================
+# Engineered feature columns
+# ============================================================
+
+DEP_HOUR_COLUMN = "DEP_HOUR"
+DEP_MINUTE_COLUMN = "DEP_MINUTE"
+IS_WEEKEND_COLUMN = "IS_WEEKEND"
+SEASON_COLUMN = "SEASON"
+TIME_OF_DAY_COLUMN = "TIME_OF_DAY"
+FLIGHT_DISTANCE_CATEGORY_COLUMN = "FLIGHT_DISTANCE_CATEGORY"
+
+
+# ============================================================
+# Data parsing and validation configuration
+# ============================================================
+
+FL_DATE_PARSE_FORMAT = "M/d/yyyy h:mm:ss a"
+BINARY_DOMAIN_VALUES = [0, 1]
+WEEKEND_DAYS = (6, 7)
+
+EXPECTED_RAW_COLUMNS = [
+    QUARTER_COLUMN,
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    FLIGHT_DATE_COLUMN,
+    AIRLINE_COLUMN,
+    FLIGHT_NUMBER_COLUMN,
+    ORIGIN_COLUMN,
+    ORIGIN_CITY_COLUMN,
+    ORIGIN_STATE_COLUMN,
+    DESTINATION_COLUMN,
+    DESTINATION_CITY_COLUMN,
+    DESTINATION_STATE_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
+    DEPARTURE_DELAY_COLUMN,
+    DEPARTURE_DELAY_FLAG_COLUMN,
+    TAXI_OUT_COLUMN,
+    TAXI_IN_COLUMN,
+    SCHEDULED_ARRIVAL_COLUMN,
+    ARRIVAL_DELAY_COLUMN,
+    ARRIVAL_DELAY_FLAG_COLUMN,
+    CANCELLED_COLUMN,
+    CANCELLATION_CODE_COLUMN,
+    DIVERTED_COLUMN,
+    SCHEDULED_ELAPSED_TIME_COLUMN,
+    ACTUAL_ELAPSED_TIME_COLUMN,
+    AIR_TIME_COLUMN,
+    DISTANCE_COLUMN,
+    *DELAY_CAUSE_COLUMNS,
+]
+
+BUSINESS_KEY_COLUMNS = [
+    FLIGHT_DATE_COLUMN,
+    AIRLINE_COLUMN,
+    FLIGHT_NUMBER_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
+]
+
+BINARY_INDICATOR_COLUMNS = [
+    DEPARTURE_DELAY_FLAG_COLUMN,
+    ARRIVAL_DELAY_FLAG_COLUMN,
+    CANCELLED_COLUMN,
+    DIVERTED_COLUMN,
+]
+
+CODE_COLUMNS = [
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    ORIGIN_STATE_COLUMN,
+    DESTINATION_COLUMN,
+    DESTINATION_STATE_COLUMN,
+    CANCELLATION_CODE_COLUMN,
+]
+
+TEXT_COLUMNS = [
+    ORIGIN_CITY_COLUMN,
+    DESTINATION_CITY_COLUMN,
+]
+
+INTEGER_COLUMNS = [
+    QUARTER_COLUMN,
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    FLIGHT_NUMBER_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
+    SCHEDULED_ARRIVAL_COLUMN,
+]
+
+DOUBLE_COLUMNS = [
+    DEPARTURE_DELAY_COLUMN,
+    TAXI_OUT_COLUMN,
+    TAXI_IN_COLUMN,
+    ARRIVAL_DELAY_COLUMN,
+    SCHEDULED_ELAPSED_TIME_COLUMN,
+    ACTUAL_ELAPSED_TIME_COLUMN,
+    AIR_TIME_COLUMN,
+    DISTANCE_COLUMN,
+    *DELAY_CAUSE_COLUMNS,
+]
+
+STANDARDIZED_TYPE_COLUMNS = [
+    FLIGHT_DATE_COLUMN,
+    *BINARY_INDICATOR_COLUMNS,
+]
+
+CLEANING_PREVIEW_COLUMNS = [
+    FLIGHT_DATE_COLUMN,
+    AIRLINE_COLUMN,
+    FLIGHT_NUMBER_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    DEPARTURE_DELAY_FLAG_COLUMN,
+    ARRIVAL_DELAY_FLAG_COLUMN,
+    CANCELLED_COLUMN,
+    DIVERTED_COLUMN,
+]
+
+DOMAIN_RULES = {
+    QUARTER_COLUMN: [1, 2, 3, 4],
+    MONTH_COLUMN: list(range(1, 13)),
+    DAY_OF_WEEK_COLUMN: list(range(1, 8)),
+    DEPARTURE_DELAY_FLAG_COLUMN: BINARY_DOMAIN_VALUES,
+    ARRIVAL_DELAY_FLAG_COLUMN: BINARY_DOMAIN_VALUES,
+    CANCELLED_COLUMN: BINARY_DOMAIN_VALUES,
+    DIVERTED_COLUMN: BINARY_DOMAIN_VALUES,
+}
+
+
+# ============================================================
+# Feature engineering configuration
+# ============================================================
+
+FEATURE_INPUT_COLUMNS = [
+    FLIGHT_DATE_COLUMN,
+    QUARTER_COLUMN,
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    AIRLINE_COLUMN,
+    FLIGHT_NUMBER_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
+    SCHEDULED_ARRIVAL_COLUMN,
+    SCHEDULED_ELAPSED_TIME_COLUMN,
+    DISTANCE_COLUMN,
+    ARRIVAL_DELAY_FLAG_COLUMN,
+    CANCELLED_COLUMN,
+    DIVERTED_COLUMN,
+]
+
+MODEL_ELIGIBLE_STATUS_VALUE = 0
+
+DISTANCE_SHORT_MAX_MILES = 500
+DISTANCE_MEDIUM_MAX_MILES = 1500
+
+TIME_OF_DAY_BUCKETS = [
+    {"label": "Overnight", "start_hour": 0, "end_hour": 5},
+    {"label": "Morning", "start_hour": 6, "end_hour": 11},
+    {"label": "Afternoon", "start_hour": 12, "end_hour": 16},
+    {"label": "Evening", "start_hour": 17, "end_hour": 20},
+    {"label": "Night", "start_hour": 21, "end_hour": 23},
+]
+
+SEASON_MONTH_GROUPS = {
+    "Winter": (12, 1, 2),
+    "Spring": (3, 4, 5),
+    "Summer": (6, 7, 8),
+    "Fall": (9, 10, 11),
+}
+
+MODEL_FEATURE_COLUMNS = [
+    QUARTER_COLUMN,
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    FLIGHT_DATE_COLUMN,
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    DISTANCE_COLUMN,
+    ORIGIN_CITY_COLUMN,
+    ORIGIN_STATE_COLUMN,
+    DESTINATION_CITY_COLUMN,
+    DESTINATION_STATE_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
+    SCHEDULED_ARRIVAL_COLUMN,
+    SCHEDULED_ELAPSED_TIME_COLUMN,
+    DEP_HOUR_COLUMN,
+    DEP_MINUTE_COLUMN,
+    IS_WEEKEND_COLUMN,
+    SEASON_COLUMN,
+    TIME_OF_DAY_COLUMN,
+    FLIGHT_DISTANCE_CATEGORY_COLUMN,
+    TARGET_COLUMN,
+]
+
+MODEL_PREDICTOR_COLUMNS = [
+    column for column in MODEL_FEATURE_COLUMNS if column != TARGET_COLUMN
+]
 
 
 # ============================================================
@@ -202,12 +411,21 @@ RANDOM_SEED = 42
 TRAIN_RATIO = 0.80
 TEST_RATIO = 0.20
 
+TRAIN_END_DATE = "2025-08-31"
+VALIDATION_START_DATE = "2025-09-01"
+VALIDATION_END_DATE = "2025-10-31"
+TEST_START_DATE = "2025-11-01"
+
+HISTORICAL_SMOOTHING_STRENGTH = 100.0
+
 
 # ============================================================
 # Operational analysis configuration
 # ============================================================
 
 MIN_OPERATIONAL_FLIGHTS = 1000
+MIN_ROUTE_FLIGHTS = 100
+TOP_N_RESULTS = 20
 
 LOW_RISK_THRESHOLD = 0.30
 HIGH_RISK_THRESHOLD = 0.60
@@ -239,13 +457,87 @@ KEY_OPERATIONAL_COLUMNS = [
     TARGET_COLUMN,
 ]
 
+LEAKAGE_COLUMNS = [
+    DEPARTURE_DELAY_COLUMN,
+    ARRIVAL_DELAY_COLUMN,
+    DEPARTURE_DELAY_FLAG_COLUMN,
+    TAXI_OUT_COLUMN,
+    TAXI_IN_COLUMN,
+    ACTUAL_ELAPSED_TIME_COLUMN,
+    AIR_TIME_COLUMN,
+    *DELAY_CAUSE_COLUMNS,
+]
+
+
 # ============================================================
-# Operational analysis configuration
+# Model training notebook configuration
 # ============================================================
 
-MIN_OPERATIONAL_FLIGHTS = 1000
-MIN_ROUTE_FLIGHTS = 100
-TOP_N_RESULTS = 20
+TUNING_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_tree_tuning"
+MODELS_PATH = f"{VOLUME_PATH}/models"
+SELECTED_MODEL_PATH = f"{MODELS_PATH}/logistic_regression_final"
+SELECTED_MODEL_METADATA_PATH = f"{SELECTED_MODEL_PATH}/model_metadata.json"
+SELECTED_MODEL_METRICS_PATH = f"{SELECTED_MODEL_PATH}/model_metrics.json"
 
-LOW_RISK_THRESHOLD = 0.30
-HIGH_RISK_THRESHOLD = 0.60
+HASH_VECTOR_SIZE = 2**12
+
+TREE_TUNING_SAMPLE_FRACTIONS = {
+    0.0: 0.10,
+    1.0: 0.30,
+}
+
+FINAL_TRAINING_SAMPLE_FRACTIONS = TREE_TUNING_SAMPLE_FRACTIONS
+
+TUNING_FOLDS = [
+    {
+        "fold": "Fold 1",
+        "train_end": "2025-04-30",
+        "validation_start": "2025-05-01",
+        "validation_end": "2025-05-31",
+    },
+    {
+        "fold": "Fold 2",
+        "train_end": "2025-05-31",
+        "validation_start": "2025-06-01",
+        "validation_end": "2025-06-30",
+    },
+    {
+        "fold": "Fold 3",
+        "train_end": "2025-06-30",
+        "validation_start": "2025-07-01",
+        "validation_end": "2025-07-31",
+    },
+    {
+        "fold": "Fold 4",
+        "train_end": "2025-07-31",
+        "validation_start": "2025-08-01",
+        "validation_end": "2025-08-31",
+    },
+]
+
+SELECTED_MODEL_NAME = "Logistic Regression"
+SELECTED_LR_PARAMS = {
+    "regParam": 0.001,
+    "elasticNetParam": 0.0,
+}
+SELECTED_LR_MAX_ITER = 20
+
+SHAP_SAMPLE_SIZE = 20000
+CALIBRATION_BINS = 10
+CALIBRATION_SAMPLE_FRACTION = 0.20
+TOP_RISK_PERCENTILES = [0.05, 0.10, 0.20]
+THRESHOLD_SEARCH_MIN = 0.10
+THRESHOLD_SEARCH_MAX = 0.90
+THRESHOLD_SEARCH_STEP = 0.05
+DEFAULT_DECISION_THRESHOLD = 0.50
+
+SUBGROUP_ERROR_COLUMNS = [
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    MONTH_COLUMN,
+    TIME_OF_DAY_COLUMN,
+    SEASON_COLUMN,
+]
+
+MODEL_TRAINING_REQUIRED_COLUMNS = set(MODEL_FEATURE_COLUMNS)
