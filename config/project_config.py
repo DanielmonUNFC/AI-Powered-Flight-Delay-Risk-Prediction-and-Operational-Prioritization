@@ -522,7 +522,32 @@ SELECTED_LR_PARAMS = {
 }
 SELECTED_LR_MAX_ITER = 20
 
+MODELING_TRAIN_HASHED_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_train_hashed"
+MODELING_VALIDATION_HASHED_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_modeling_validation_hashed"
+)
+MODELING_TEST_HASHED_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_test_hashed"
+MODELING_TRAIN_HIST_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_train_hist"
+MODELING_VALIDATION_HIST_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_modeling_validation_hist"
+)
+MODELING_TEST_HIST_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_test_hist"
+TUNED_MODEL_COMPARISON_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison"
+CANDIDATE_SELECTION_PATH = f"{MODELS_PATH}/candidate_model_selection.json"
+MODEL_FEATURE_MANIFEST_PATH = f"{MODELS_PATH}/model_feature_manifest.json"
+
 SHAP_SAMPLE_SIZE = 20000
+SHAP_VALUES_SAMPLE_ROWS = 1000
+SHAP_VALUES_TOP_FEATURES = 10
+SHAP_GLOBAL_IMPORTANCE_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_shap_global_importance"
+)
+SHAP_DIRECTION_EFFECTS_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_shap_direction_effects"
+)
+SHAP_VALUES_SAMPLE_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_shap_values_sample"
+SHAP_ARTIFACTS_PATH = f"{MODELS_PATH}/shap_artifacts"
+SHAP_LOCAL_EXPLANATION_PATH = f"{SHAP_ARTIFACTS_PATH}/local_explanation.json"
 CALIBRATION_BINS = 10
 CALIBRATION_SAMPLE_FRACTION = 0.20
 TOP_RISK_PERCENTILES = [0.05, 0.10, 0.20]
@@ -541,3 +566,37 @@ SUBGROUP_ERROR_COLUMNS = [
 ]
 
 MODEL_TRAINING_REQUIRED_COLUMNS = set(MODEL_FEATURE_COLUMNS)
+
+
+# ============================================================
+# Statistical analysis configuration
+# ============================================================
+
+STATISTICAL_RESULTS_TABLE = f"{CATALOG}.{SCHEMA}.statistical_analysis_results"
+STATISTICAL_RESULTS_PATH = f"{PROCESSED_PATH}/statistical_analysis_results"
+
+STATISTICAL_SIGNIFICANCE_ALPHA = 0.05
+STATISTICAL_SAMPLE_FRACTION = 0.05
+STATISTICAL_MIN_EXPECTED_FREQUENCY = 5
+STATISTICAL_TOP_AIRLINES = 10
+STATISTICAL_TOP_AIRPORTS = 15
+STATISTICAL_TOP_DEST_AIRPORTS = 15
+
+STATISTICAL_CATEGORICAL_FACTORS = [
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    SEASON_COLUMN,
+    TIME_OF_DAY_COLUMN,
+    IS_WEEKEND_COLUMN,
+]
+
+RESEARCH_QUESTIONS = {
+    "RQ1": "Can flight delays be accurately predicted before departure using operational flight information?",
+    "RQ2": "Which operational factors contribute the most to flight delays?",
+    "RQ3": "Do certain airlines and airports consistently experience higher delay rates than others?",
+    "RQ4": "Can prescriptive analytics improve operational decision-making by prioritizing high-risk flights under limited resources?",
+    "RQ5": "Can Explainable Artificial Intelligence (SHAP) improve the interpretability of flight delay predictions for airline operations?",
+}

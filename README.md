@@ -66,10 +66,24 @@ Airline On-Time Performance Data
 
 ---
 
+## Databricks Notebook Pipeline
+
+```
+00_environment_setup
+01_data_ingestion
+02_data_profiling
+03_exploratory_data_analysis
+04_data_cleaning
+05_statistical_analysis
+06_feature_engineering
+07_model_training
+08_model_evaluation
+09_explainability
+```
+
 ## Repository Structure
 
 ```
-config/
 dashboard/
 data/
     ├── raw/
