@@ -16,6 +16,7 @@ from charts.model_insights_charts import (
 )
 from components.surface_card import render_html_panel
 from styles.theme import COLORS, PLOTLY_CONFIG
+from styles.typography import typography_css_variables
 
 
 _MODEL_INSIGHTS_CSS_PATH = (
@@ -143,6 +144,7 @@ def _model_insights_component_css() -> str:
     """Return iframe-ready Model Insights styles."""
 
     theme_variables = f"""
+        {typography_css_variables()}
         :root {{
             --model-insights-text-primary:
                 {COLORS["text_primary"]};

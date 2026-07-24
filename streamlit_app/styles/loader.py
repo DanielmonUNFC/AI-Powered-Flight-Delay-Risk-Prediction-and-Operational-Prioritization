@@ -5,10 +5,13 @@ from pathlib import Path
 import streamlit as st
 
 STYLE_FILES = (
+    "typography.css",
     "base.css",
     "components.css",
     "explorer.css",
     "project_info.css",
+    "delay_prediction.css",
+    "prioritization.css",
 )
 
 

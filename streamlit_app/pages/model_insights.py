@@ -18,7 +18,14 @@ from services.prototype_data import (
 def render_model_insights_page() -> None:
     """Render the Model Insights page using prototype SHAP data."""
 
-    st.markdown("##### MODEL INSIGHTS")
+    st.markdown(
+        """
+        <div class="page-subtitle page-subtitle--model-insights">
+            Global and local SHAP explainability for delay-risk predictions
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     global_column, local_column = st.columns(
         [1, 1],

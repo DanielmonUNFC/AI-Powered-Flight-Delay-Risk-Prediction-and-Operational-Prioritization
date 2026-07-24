@@ -4,6 +4,7 @@ import streamlit.components.v1 as components
 
 from components.panel_header import panel_header_html
 from styles.theme import COLORS
+from styles.typography import typography_css_variables
 
 
 def surface_panel_styles(extra_css: str = "") -> str:
@@ -22,7 +23,7 @@ def surface_panel_styles(extra_css: str = "") -> str:
             flex-direction: column;
         }}
         .surface-panel-card__header {{
-            font-size: 0.75rem;
+            font-size: var(--font-size-overline);
             font-weight: 600;
             color: {COLORS["text_label"]};
             text-transform: uppercase;
@@ -55,7 +56,7 @@ def surface_panel_styles(extra_css: str = "") -> str:
         }}
         .surface-panel-card__header-action {{
             color: {COLORS["text_muted"]};
-            font-size: 0.85rem;
+            font-size: var(--font-size-body-sm);
             cursor: default;
         }}
         .surface-panel-card__body {{
@@ -84,14 +85,17 @@ def render_html_panel(
     """Render a titled panel with optional scrollable body and footer."""
     header_html = panel_header_html(title, icon_id, header_action=header_action)
 
-    page_styles = """
-        html, body {
+    page_styles = f"""
+        {typography_css_variables()}
+        html, body {{
             margin: 0;
             padding: 0;
             background: transparent;
             overflow: hidden;
             height: 100%;
-        }
+            font-size: var(--font-size-body-sm);
+            line-height: var(--line-height-body);
+        }}
     """
 
     if scrollable:

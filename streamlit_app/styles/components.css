@@ -19,7 +19,7 @@
 }
 
 .surface-panel-card__header {
-    font-size: 0.75rem;
+    font-size: var(--font-size-overline);
     font-weight: 600;
     color: var(--text-label);
     text-transform: uppercase;
@@ -41,15 +41,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     color: var(--accent-bright);
     flex-shrink: 0;
 }
 
 .panel-icon svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     display: block;
 }
 
@@ -81,19 +81,28 @@ div[data-testid="stDataFrame"] {
     background-color: transparent !important;
 }
 
+[data-testid="element-container"]:has(.app-header) {
+    margin-bottom: 6px !important;
+}
+
+[data-testid="element-container"]:has(.app-header) + [data-testid="element-container"] {
+    margin-top: 8px !important;
+    padding-top: 0 !important;
+}
+
 .app-header {
     background-color: var(--surface-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: 8px;
     padding: 12px 20px;
-    margin-bottom: 8px;
+    margin-bottom: 0 !important;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .app-header__brand {
-    font-size: 1.05rem;
+    font-size: var(--font-size-display);
     font-weight: 700;
     letter-spacing: -0.01em;
 }
@@ -112,7 +121,7 @@ div[data-testid="stDataFrame"] {
     border: 1px solid var(--success);
     padding: 4px 12px;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-body-sm);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -122,7 +131,7 @@ div[data-testid="stDataFrame"] {
 }
 
 .kpi-card__title {
-    font-size: 0.75rem;
+    font-size: var(--font-size-overline);
     font-weight: 600;
     color: var(--text-label);
     text-transform: uppercase;
@@ -132,14 +141,15 @@ div[data-testid="stDataFrame"] {
 
 .kpi-card__value {
     font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
-    font-size: 1.75rem;
+    font-size: var(--font-size-metric);
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 6px;
+    line-height: var(--line-height-tight);
 }
 
 .kpi-card__delta {
-    font-size: 0.8rem;
+    font-size: var(--font-size-metric-delta);
     font-weight: 600;
 }
 
@@ -156,42 +166,63 @@ div[data-testid="stDataFrame"] {
     border: 1px solid var(--border-insight);
     border-left: 4px solid var(--accent-cyan);
     border-radius: 8px;
-    padding: 14px 20px;
-    margin-top: 16px;
+    padding: 18px 22px;
+    margin-top: var(--layout-section-gap);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
 }
 
 .insight-card__content {
     flex: 1;
+    min-width: 0;
 }
 
 .insight-card__title {
-    font-size: 0.78rem;
+    font-size: var(--font-size-section);
     font-weight: 700;
     color: var(--accent-cyan);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
     gap: 8px;
+    line-height: var(--line-height-tight);
 }
 
+.insight-card__title .panel-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.insight-card__title .panel-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+[data-testid="stMarkdownContainer"] .insight-card__body,
+[data-testid="stMarkdown"] .insight-card__body,
 .insight-card__body {
-    font-size: 0.92rem;
+    font-size: var(--font-size-body) !important;
+    color: var(--text-primary) !important;
+    line-height: var(--line-height-body);
+}
+
+.insight-card__body b,
+.insight-card__body strong {
+    font-weight: 700;
     color: var(--text-primary);
-    line-height: 1.5;
 }
 
 .insight-card__sparkle {
     color: var(--accent-bright);
-    font-size: 1rem;
+    font-size: 1.25rem;
     line-height: 1;
     opacity: 0.85;
-    padding-top: 2px;
+    flex-shrink: 0;
+    align-self: center;
 }
 
 div[data-baseweb="select"] > div {
@@ -199,16 +230,45 @@ div[data-baseweb="select"] > div {
     border: 1px solid #23334d !important;
     border-radius: 8px !important;
     color: #ffffff !important;
+    font-size: var(--font-size-control) !important;
+    min-height: 42px !important;
+}
+
+div[data-baseweb="select"] > div > div {
+    font-size: var(--font-size-control) !important;
 }
 
 div[data-baseweb="select"]:hover > div {
     border-color: var(--accent) !important;
 }
 
-div[data-testid="stSelectbox"] label {
+[data-testid="stSelectbox"] [data-testid="stWidgetLabel"],
+[data-testid="stSelectbox"] [data-testid="stWidgetLabel"] p,
+[data-testid="stDateInput"] [data-testid="stWidgetLabel"],
+[data-testid="stDateInput"] [data-testid="stWidgetLabel"] p,
+[data-testid="stTimeInput"] [data-testid="stWidgetLabel"],
+[data-testid="stTimeInput"] [data-testid="stWidgetLabel"] p,
+[data-testid="stTextInput"] [data-testid="stWidgetLabel"],
+[data-testid="stTextInput"] [data-testid="stWidgetLabel"] p,
+div[data-testid="stSelectbox"] label,
+div[data-testid="stSelectbox"] label p,
+div[data-testid="stDateInput"] label,
+div[data-testid="stDateInput"] label p,
+div[data-testid="stTimeInput"] label,
+div[data-testid="stTimeInput"] label p,
+div[data-testid="stTextInput"] label,
+div[data-testid="stTextInput"] label p {
     color: var(--text-secondary) !important;
-    font-size: 0.85rem !important;
+    font-size: var(--font-size-label) !important;
     font-weight: 600 !important;
+    line-height: var(--line-height-tight) !important;
+}
+
+div[data-testid="stDateInput"] input,
+div[data-testid="stTimeInput"] input,
+div[data-testid="stTextInput"] input {
+    font-size: var(--font-size-control) !important;
+    min-height: 42px !important;
 }
 
 div.stButton > button {
@@ -216,6 +276,7 @@ div.stButton > button {
     color: var(--text-secondary) !important;
     border: 1px solid #2a3b5c !important;
     border-radius: 8px !important;
+    font-size: var(--font-size-body-sm) !important;
     font-weight: 600 !important;
     margin-top: 8px !important;
 }
@@ -229,25 +290,50 @@ div.stButton > button:hover {
 div[data-baseweb="tab-list"] {
     background-color: transparent !important;
     border-bottom: 1px solid var(--border) !important;
-    gap: 16px !important;
+    gap: 12px !important;
+    min-height: 48px !important;
+    margin-top: 6px !important;
+    margin-bottom: 0 !important;
+    padding-top: 4px !important;
+}
+
+[data-testid="stTabs"] {
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+[data-testid="stTabs"] [data-baseweb="tab-panel"] {
+    border-top: none !important;
+}
+
+[data-testid="stTabs"] > div:first-child {
+    margin-top: 0 !important;
+}
+
+button[data-baseweb="tab"],
+button[data-baseweb="tab"] p,
+button[data-baseweb="tab"] div {
+    background-color: transparent !important;
+    color: var(--text-secondary) !important;
+    font-size: var(--font-size-tab) !important;
+    font-weight: 500 !important;
+    line-height: var(--line-height-tight) !important;
 }
 
 button[data-baseweb="tab"] {
-    background-color: transparent !important;
-    color: var(--text-secondary) !important;
-    font-weight: 500 !important;
-    padding: 10px 12px !important;
+    padding: 12px 16px !important;
     border: none !important;
 }
 
-button[data-baseweb="tab"][aria-selected="true"] {
+button[data-baseweb="tab"][aria-selected="true"],
+button[data-baseweb="tab"][aria-selected="true"] p,
+button[data-baseweb="tab"][aria-selected="true"] div {
     background-color: transparent !important;
     color: var(--accent-bright) !important;
     font-weight: 700 !important;
 }
 
 div[data-baseweb="tab-highlight"] {
-    background-color: var(--accent) !important;
-    height: 3px !important;
-    border-radius: 2px !important;
+    display: none !important;
 }
