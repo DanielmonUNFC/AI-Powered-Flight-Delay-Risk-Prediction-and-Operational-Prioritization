@@ -44,6 +44,29 @@ def create_feature_hasher() -> FeatureHasher:
     return feature_hasher
 
 
+def create_feature_hasher_from_manifest(
+    feature_manifest: dict[str, object],
+) -> FeatureHasher:
+    """Create a FeatureHasher aligned with a persisted feature manifest."""
+    input_columns = list(feature_manifest["model_input_columns"])
+    stale_columns = sorted(
+        set(input_columns) & set(cfg.MODEL_INTERMEDIATE_HIST_COLUMNS)
+    )
+    if stale_columns:
+        raise ValueError(
+            "Feature manifest references intermediate hist columns that must not "
+            f"be model inputs: {stale_columns}. Re-run notebook 07 after syncing "
+            "config/project_config.py and utils/model_training.py."
+        )
+
+    return FeatureHasher(
+        inputCols=input_columns,
+        outputCol="features",
+        categoricalCols=list(feature_manifest["categorical_columns"]),
+        numFeatures=int(feature_manifest["hash_vector_size"]),
+    )
+
+
 def validate_feature_hasher(feature_hasher: FeatureHasher) -> None:
     """Ensure the hasher only references canonical model-input columns."""
     input_columns = list(feature_hasher.getInputCols())
