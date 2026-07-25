@@ -34,12 +34,35 @@ def build_feature_manifest(
 
 def create_feature_hasher() -> FeatureHasher:
     """Create the canonical FeatureHasher used across modeling notebooks."""
-    return FeatureHasher(
+    feature_hasher = FeatureHasher(
         inputCols=list(cfg.MODEL_INPUT_COLUMNS),
         outputCol="features",
         categoricalCols=list(cfg.MODEL_CATEGORICAL_COLUMNS),
         numFeatures=cfg.HASH_VECTOR_SIZE,
     )
+    validate_feature_hasher(feature_hasher)
+    return feature_hasher
+
+
+def validate_feature_hasher(feature_hasher: FeatureHasher) -> None:
+    """Ensure the hasher only references canonical model-input columns."""
+    input_columns = list(feature_hasher.getInputCols())
+    stale_columns = sorted(
+        set(input_columns) & set(cfg.MODEL_INTERMEDIATE_HIST_COLUMNS)
+    )
+    if stale_columns:
+        raise ValueError(
+            "FeatureHasher references intermediate hist columns that must not "
+            f"be model inputs: {stale_columns}. Sync config/project_config.py "
+            "and utils/model_training.py, then restart the notebook kernel."
+        )
+
+    if input_columns != list(cfg.MODEL_INPUT_COLUMNS):
+        raise ValueError(
+            "FeatureHasher input columns do not match project_config.MODEL_INPUT_COLUMNS. "
+            f"Hasher columns: {input_columns}. "
+            f"Config columns: {list(cfg.MODEL_INPUT_COLUMNS)}."
+        )
 
 
 def validate_hist_modeling_frame(
@@ -72,13 +95,29 @@ def prepare_hist_modeling_frame(hist_dataframe: DataFrame) -> DataFrame:
 
 def hash_modeling_frame(
     hist_dataframe: DataFrame,
-    feature_hasher: FeatureHasher,
+    feature_hasher: FeatureHasher | None = None,
 ) -> DataFrame:
     """Hash a hist modeling frame and keep only join keys, target, and features."""
+    prepared_hist = prepare_hist_modeling_frame(hist_dataframe)
+    hasher = feature_hasher or create_feature_hasher()
+    validate_feature_hasher(hasher)
     return (
-        feature_hasher.transform(hist_dataframe)
+        hasher.transform(prepared_hist)
         .select(*cfg.MODEL_HASHED_OUTPUT_COLUMNS)
     )
+
+
+def load_hist_modeling_table(table_name: str) -> DataFrame:
+    """Load and normalize a persisted hist modeling table."""
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.getActiveSession()
+    if spark is None:
+        raise RuntimeError("No active Spark session is available.")
+
+    hist_dataframe = spark.table(table_name)
+    validate_hist_modeling_frame(hist_dataframe, table_name)
+    return prepare_hist_modeling_frame(hist_dataframe)
 
 
 def evaluate_tuning_predictions(
