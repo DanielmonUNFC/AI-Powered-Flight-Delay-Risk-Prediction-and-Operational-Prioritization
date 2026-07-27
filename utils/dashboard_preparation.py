@@ -123,25 +123,56 @@ def build_research_validation_records(
     ]
 
 
+def _model_metric_row(
+    metric_name: str,
+    metric_value: object,
+    *,
+    sort_order: int,
+) -> tuple[str, str, float, str, None, None, int] | None:
+    """Convert one model-metric entry into a dashboard record row."""
+    if isinstance(metric_value, bool):
+        numeric_value = float(metric_value)
+    elif isinstance(metric_value, (int, float)):
+        numeric_value = float(metric_value)
+    elif isinstance(metric_value, str):
+        # Metadata strings such as metric_source belong in metric_text only.
+        numeric_value = float("nan")
+    else:
+        return None
+
+    return (
+        "model_metric",
+        metric_name,
+        numeric_value,
+        str(metric_value),
+        None,
+        None,
+        sort_order,
+    )
+
+
 def build_model_metric_records(model_metrics: dict[str, object]) -> pd.DataFrame:
     """Flatten model metric JSON into dashboard records."""
-    rows = []
+    rows: list[tuple[str, str, float, str, None, None, int]] = []
     sort_order = 1
     for metric_name, metric_value in model_metrics.items():
         if isinstance(metric_value, dict):
+            for nested_name, nested_value in metric_value.items():
+                row = _model_metric_row(
+                    f"holdout_{nested_name}",
+                    nested_value,
+                    sort_order=sort_order,
+                )
+                if row is not None:
+                    rows.append(row)
+                    sort_order += 1
             continue
-        rows.append(
-            (
-                "model_metric",
-                metric_name,
-                float(metric_value),
-                str(metric_value),
-                None,
-                None,
-                sort_order,
-            )
-        )
-        sort_order += 1
+
+        row = _model_metric_row(metric_name, metric_value, sort_order=sort_order)
+        if row is not None:
+            rows.append(row)
+            sort_order += 1
+
     return pd.DataFrame(
         rows,
         columns=[
@@ -171,7 +202,16 @@ def combine_dashboard_records(frames: Iterable[pd.DataFrame]) -> pd.DataFrame:
                 "sort_order",
             ]
         )
-    return pd.concat(valid_frames, ignore_index=True)
+    combined = pd.concat(valid_frames, ignore_index=True)
+    combined["metric_value"] = pd.to_numeric(
+        combined["metric_value"],
+        errors="coerce",
+    )
+    combined["sort_order"] = pd.to_numeric(
+        combined["sort_order"],
+        errors="coerce",
+    )
+    return combined
 
 
 def serialize_dashboard_metadata(payload: dict[str, object]) -> str:
