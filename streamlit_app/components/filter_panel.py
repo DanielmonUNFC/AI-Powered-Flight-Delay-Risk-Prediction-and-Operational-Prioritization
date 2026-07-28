@@ -83,18 +83,34 @@ def render_explorer_filters(df: pd.DataFrame) -> pd.DataFrame:
     origins = ["All"] + sorted(df["Origin"].unique().tolist())
     destinations = ["All"] + sorted(df["Destination"].unique().tolist())
 
-    st.selectbox("Month", months, key="f_month")
-    st.selectbox("Carrier", carriers, key="f_carrier")
-    st.selectbox("Origin", origins, key="f_origin")
-    st.selectbox("Destination", destinations, key="f_dest")
-    st.selectbox("Delay Status", ["All", "Delayed", "On-Time"], key="f_status")
-    st.selectbox("Risk Tier", ["All", "CRITICAL", "HIGH", "LOW"], key="f_risk_tier")
-    st.selectbox(
-        "Departure Window",
-        ["All", "Morning", "Afternoon", "Evening"],
-        key="f_dep_window",
-    )
-    st.selectbox("Min Delay Probability", ["All", "≥ 50%", "≥ 80%"], key="f_min_delay")
+    row_one_left, row_one_right = st.columns(2)
+    with row_one_left:
+        st.selectbox("Month", months, key="f_month")
+    with row_one_right:
+        st.selectbox("Carrier", carriers, key="f_carrier")
+
+    row_two_left, row_two_right = st.columns(2)
+    with row_two_left:
+        st.selectbox("Origin", origins, key="f_origin")
+    with row_two_right:
+        st.selectbox("Destination", destinations, key="f_dest")
+
+    row_three_left, row_three_right = st.columns(2)
+    with row_three_left:
+        st.selectbox("Delay Status", ["All", "Delayed", "On-Time"], key="f_status")
+    with row_three_right:
+        st.selectbox("Risk Tier", ["All", "CRITICAL", "HIGH", "LOW"], key="f_risk_tier")
+
+    row_four_left, row_four_right = st.columns(2)
+    with row_four_left:
+        st.selectbox(
+            "Departure Window",
+            ["All", "Morning", "Afternoon", "Evening"],
+            key="f_dep_window",
+        )
+    with row_four_right:
+        st.selectbox("Min Delay Probability", ["All", "≥ 50%", "≥ 80%"], key="f_min_delay")
+
     st.selectbox(
         "Sort Results By",
         ["Highest Delay Risk", "Lowest Delay Risk", "Departure Time"],

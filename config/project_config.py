@@ -261,6 +261,20 @@ BUSINESS_KEY_COLUMNS = [
     SCHEDULED_DEPARTURE_COLUMN,
 ]
 
+MODELING_JOIN_KEY_COLUMNS = [
+    FLIGHT_DATE_COLUMN,
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
+]
+
+MODEL_HASHED_OUTPUT_COLUMNS = [
+    *MODELING_JOIN_KEY_COLUMNS,
+    TARGET_COLUMN,
+    "features",
+]
+
 BINARY_INDICATOR_COLUMNS = [
     DEPARTURE_DELAY_FLAG_COLUMN,
     ARRIVAL_DELAY_FLAG_COLUMN,
@@ -402,6 +416,70 @@ MODEL_PREDICTOR_COLUMNS = [
     column for column in MODEL_FEATURE_COLUMNS if column != TARGET_COLUMN
 ]
 
+MODEL_HISTORICAL_RATE_COLUMNS = [
+    "AIRLINE_HIST_DELAY_RATE",
+    "ORIGIN_HIST_DELAY_RATE",
+    "DEST_HIST_DELAY_RATE",
+    "ROUTE_HIST_DELAY_RATE",
+]
+
+# Intermediate leakage-safe building blocks. Never used as model inputs.
+MODEL_INTERMEDIATE_HIST_COLUMNS = [
+    "AIRLINE_PRIOR_FLIGHTS",
+    "AIRLINE_PRIOR_DELAYS",
+    "ORIGIN_PRIOR_FLIGHTS",
+    "ORIGIN_PRIOR_DELAYS",
+    "DEST_PRIOR_FLIGHTS",
+    "DEST_PRIOR_DELAYS",
+    "ROUTE_PRIOR_FLIGHTS",
+    "ROUTE_PRIOR_DELAYS",
+    "DAILY_FLIGHT_COUNT",
+    "DAILY_DELAY_COUNT",
+    "DAILY_ORIGIN_FLIGHT_COUNT",
+    "DAILY_ORIGIN_DELAY_COUNT",
+    "DAILY_DEST_FLIGHT_COUNT",
+    "DAILY_DEST_DELAY_COUNT",
+    "DAILY_ROUTE_FLIGHT_COUNT",
+    "DAILY_ROUTE_DELAY_COUNT",
+]
+
+MODEL_CATEGORICAL_COLUMNS = [
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    ORIGIN_CITY_COLUMN,
+    ORIGIN_STATE_COLUMN,
+    DESTINATION_CITY_COLUMN,
+    DESTINATION_STATE_COLUMN,
+    SEASON_COLUMN,
+    TIME_OF_DAY_COLUMN,
+    FLIGHT_DISTANCE_CATEGORY_COLUMN,
+]
+
+MODEL_NUMERICAL_COLUMNS = [
+    QUARTER_COLUMN,
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    DISTANCE_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
+    SCHEDULED_ARRIVAL_COLUMN,
+    SCHEDULED_ELAPSED_TIME_COLUMN,
+    DEP_HOUR_COLUMN,
+    DEP_MINUTE_COLUMN,
+    IS_WEEKEND_COLUMN,
+    *MODEL_HISTORICAL_RATE_COLUMNS,
+]
+
+MODEL_INPUT_COLUMNS = MODEL_CATEGORICAL_COLUMNS + MODEL_NUMERICAL_COLUMNS
+
+MODEL_HIST_TABLE_COLUMNS = [
+    *MODEL_INPUT_COLUMNS,
+    FLIGHT_DATE_COLUMN,
+    TARGET_COLUMN,
+]
+
+MODELING_REQUIRED_HIST_COLUMNS = set(MODEL_HIST_TABLE_COLUMNS)
+
 
 # ============================================================
 # Modeling configuration
@@ -522,7 +600,32 @@ SELECTED_LR_PARAMS = {
 }
 SELECTED_LR_MAX_ITER = 20
 
+MODELING_TRAIN_HASHED_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_train_hashed"
+MODELING_VALIDATION_HASHED_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_modeling_validation_hashed"
+)
+MODELING_TEST_HASHED_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_test_hashed"
+MODELING_TRAIN_HIST_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_train_hist"
+MODELING_VALIDATION_HIST_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_modeling_validation_hist"
+)
+MODELING_TEST_HIST_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_test_hist"
+TUNED_MODEL_COMPARISON_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison"
+CANDIDATE_SELECTION_PATH = f"{MODELS_PATH}/candidate_model_selection.json"
+MODEL_FEATURE_MANIFEST_PATH = f"{MODELS_PATH}/model_feature_manifest.json"
+
 SHAP_SAMPLE_SIZE = 20000
+SHAP_VALUES_SAMPLE_ROWS = 1000
+SHAP_VALUES_TOP_FEATURES = 10
+SHAP_GLOBAL_IMPORTANCE_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_shap_global_importance"
+)
+SHAP_DIRECTION_EFFECTS_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_shap_direction_effects"
+)
+SHAP_VALUES_SAMPLE_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_shap_values_sample"
+SHAP_ARTIFACTS_PATH = f"{MODELS_PATH}/shap_artifacts"
+SHAP_LOCAL_EXPLANATION_PATH = f"{SHAP_ARTIFACTS_PATH}/local_explanation.json"
 CALIBRATION_BINS = 10
 CALIBRATION_SAMPLE_FRACTION = 0.20
 TOP_RISK_PERCENTILES = [0.05, 0.10, 0.20]
@@ -541,3 +644,93 @@ SUBGROUP_ERROR_COLUMNS = [
 ]
 
 MODEL_TRAINING_REQUIRED_COLUMNS = set(MODEL_FEATURE_COLUMNS)
+
+
+# ============================================================
+# Statistical analysis configuration
+# ============================================================
+
+STATISTICAL_RESULTS_TABLE = f"{CATALOG}.{SCHEMA}.statistical_analysis_results"
+STATISTICAL_RESULTS_PATH = f"{PROCESSED_PATH}/statistical_analysis_results"
+
+STATISTICAL_SIGNIFICANCE_ALPHA = 0.05
+STATISTICAL_SAMPLE_FRACTION = 0.05
+STATISTICAL_MIN_EXPECTED_FREQUENCY = 5
+STATISTICAL_TOP_AIRLINES = 10
+STATISTICAL_TOP_AIRPORTS = 15
+STATISTICAL_TOP_DEST_AIRPORTS = 15
+
+STATISTICAL_CATEGORICAL_FACTORS = [
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    SEASON_COLUMN,
+    TIME_OF_DAY_COLUMN,
+    IS_WEEKEND_COLUMN,
+]
+
+RESEARCH_QUESTIONS = {
+    "RQ1": "Can flight delays be accurately predicted before departure using operational flight information?",
+    "RQ2": "Which operational factors contribute the most to flight delays?",
+    "RQ3": "Do certain airlines and airports consistently experience higher delay rates than others?",
+    "RQ4": "Can prescriptive analytics improve operational decision-making by prioritizing high-risk flights under limited resources?",
+    "RQ5": "Can Explainable Artificial Intelligence (SHAP) improve the interpretability of flight delay predictions for airline operations?",
+}
+
+
+# ============================================================
+# Operational prioritization configuration
+# ============================================================
+
+PREDICTIONS_DELTA_PATH = f"{PROCESSED_PATH}/flight_predictions"
+PRIORITIZATION_RESULTS_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_prioritization_results"
+)
+PRIORITIZATION_EVALUATION_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_prioritization_evaluation"
+)
+PRIORITIZATION_RESULTS_PATH = f"{PROCESSED_PATH}/flight_prioritization_results"
+PRIORITIZATION_EVALUATION_PATH = (
+    f"{PROCESSED_PATH}/flight_prioritization_evaluation"
+)
+
+CAPACITY_K_OPTIONS = (10, 25, 50, 100)
+DEFAULT_CAPACITY_K = 25
+MAX_FLIGHTS_PER_AIRPORT = 5
+MAX_FLIGHTS_PER_AIRLINE = 4
+PRIORITIZATION_POOL_MIN_PROB = HIGH_RISK_THRESHOLD
+
+SCORING_START_DATE = VALIDATION_START_DATE
+SCORING_END_DATE = VALIDATION_END_DATE
+
+RISK_RECOMMENDATIONS = {
+    "LOW": "Routine Monitoring",
+    "MEDIUM": "Increased Operational Monitoring",
+    "HIGH": "Priority Operational Review",
+    "CRITICAL": "Immediate Operational Assessment",
+}
+
+CRITICAL_RISK_THRESHOLD = 0.80
+MEDIUM_RISK_THRESHOLD = LOW_RISK_THRESHOLD
+
+
+# ============================================================
+# Dashboard preparation configuration
+# ============================================================
+
+DASHBOARD_DELTA_PATH = f"{PROCESSED_PATH}/flight_dashboard"
+DASHBOARD_METADATA_PATH = f"{MODELS_PATH}/dashboard_metadata.json"
+DASHBOARD_EXPLORER_TABLE = f"{CATALOG}.{SCHEMA}.flight_dashboard_explorer"
+DASHBOARD_EXPLORER_PATH = f"{PROCESSED_PATH}/flight_dashboard_explorer"
+DASHBOARD_INSIGHTS_TABLE = f"{CATALOG}.{SCHEMA}.flight_dashboard_insights"
+DASHBOARD_INSIGHTS_PATH = f"{PROCESSED_PATH}/flight_dashboard_insights"
+
+DELAY_CAUSE_LABELS = {
+    "CARRIER_DELAY": "Carrier",
+    "WEATHER_DELAY": "Weather",
+    "NAS_DELAY": "NAS",
+    "SECURITY_DELAY": "Security",
+    "LATE_AIRCRAFT_DELAY": "Late Aircraft",
+}

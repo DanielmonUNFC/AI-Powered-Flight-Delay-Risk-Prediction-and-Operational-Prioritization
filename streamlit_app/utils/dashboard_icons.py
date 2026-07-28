@@ -11,12 +11,17 @@ PANEL_ICON_IDS = frozenset({
     "routes",
     "flight_log",
     "objective",
+    "dataset",
+    "prediction_target",
+    "research_questions",
     "methodology",
     "team",
     "tech",
     "delay_prediction",
     "model_insights",
     "prioritization",
+    "live_summary",
+    "priority_ranking",
 })
 
 TECH_ICON_IDS = frozenset({
@@ -76,6 +81,20 @@ def panel_icon_svg(icon_id: str) -> str:
             f"<circle cx=\"12\" cy=\"12\" r=\"2.5\"/>"
             f"<path d=\"M12 2.5v2.5M12 19v2.5M4 12H2M22 12h-2\"/></svg>"
         ),
+        "dataset": (
+            f"<svg{_SVG}><ellipse cx=\"12\" cy=\"7\" rx=\"7.5\" ry=\"3\"/>"
+            f"<path d=\"M4.5 7v5c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3V7\"/>"
+            f"<path d=\"M4.5 12v5c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3v-5\"/></svg>"
+        ),
+        "prediction_target": (
+            f"<svg{_SVG}><circle cx=\"12\" cy=\"12\" r=\"8\"/>"
+            f"<circle cx=\"12\" cy=\"12\" r=\"4\"/>"
+            f"<circle cx=\"12\" cy=\"12\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/></svg>"
+        ),
+        "research_questions": (
+            f"<svg{_SVG}><path d=\"M9 4h6a2 2 0 0 1 2 2v11H7V6a2 2 0 0 1 2-2z\"/>"
+            f"<path d=\"M7 17h10M9 8h6M9 11h4\"/></svg>"
+        ),
         "methodology": (
             f"<svg{_SVG}><rect x=\"3\" y=\"4\" width=\"6\" height=\"5\" rx=\"1.2\"/>"
             f"<rect x=\"15\" y=\"4\" width=\"6\" height=\"5\" rx=\"1.2\"/>"
@@ -104,6 +123,14 @@ def panel_icon_svg(icon_id: str) -> str:
         "prioritization": (
             f"<svg{_SVG}><path d=\"M12 3 2 20h20L12 3z\"/>"
             f"<path d=\"M12 9v5M12 17h.01\"/></svg>"
+        ),
+        "live_summary": (
+            f"<svg{_SVG}><path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z\"/>"
+            f"<circle cx=\"12\" cy=\"12\" r=\"2.8\"/></svg>"
+        ),
+        "priority_ranking": (
+            f"<svg{_SVG}><path d=\"M4 6h16M4 12h10M4 18h14\"/>"
+            f"<path d=\"M19 11v2M19 17v2\"/></svg>"
         ),
     }
     return icons.get(icon_id, icons["objective"])

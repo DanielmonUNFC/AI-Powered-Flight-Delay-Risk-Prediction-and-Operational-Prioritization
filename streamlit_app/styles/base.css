@@ -17,6 +17,8 @@
     --accent-cyan: #20c5d8;
     --success: #2ecc71;
     --danger: #eb5757;
+    --layout-section-gap: 16px;
+    --tab-content-offset: 18px;
 }
 
 html, body, [data-testid="stAppViewContainer"] {
@@ -26,9 +28,11 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 
 .block-container {
-    padding-top: 1rem !important;
-    padding-bottom: 2rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
     max-width: 100% !important;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
 }
 
 header[data-testid="stHeader"], #MainMenu, footer {
@@ -37,12 +41,31 @@ header[data-testid="stHeader"], #MainMenu, footer {
 }
 
 .page-subtitle {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 15px;
+    font-size: var(--font-size-subtitle);
+    line-height: var(--line-height-body);
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-top: 0 !important;
+    margin-bottom: var(--layout-section-gap);
     flex-shrink: 0;
 }
 
 .section-spacer {
-    margin-top: 15px;
+    margin-top: var(--layout-section-gap);
+}
+
+.tab-content-top-spacer {
+    display: block;
+    width: 100%;
+    height: var(--tab-content-offset);
+    min-height: var(--tab-content-offset);
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+/* Hide zero-height spacer iframe chrome */
+[data-testid="element-container"]:has(iframe[title="streamlit.components.v1.components.html"]) {
+    margin-bottom: 0 !important;
 }

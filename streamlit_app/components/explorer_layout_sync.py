@@ -12,7 +12,7 @@ _HEIGHT_SYNC_SCRIPT = """
 (function () {
     const win = window.parent;
     const doc = win.document;
-    const BOTTOM_PADDING = 20;
+    const BOTTOM_PADDING = 10;
     let timer = null;
 
     function cssPx(name, fallback) {
@@ -30,15 +30,15 @@ _HEIGHT_SYNC_SCRIPT = """
         );
         if (!row) return;
 
-        const compactHeight = cssPx("--explorer-compact-height", 360);
-        const sectionGap = cssPx("--explorer-section-gap", 15);
-        const mainMarginTop = cssPx("--explorer-main-margin-top", 22);
+        const compactHeight = cssPx("--explorer-compact-height", 290);
+        const sectionGap = cssPx("--explorer-section-gap", 10);
+        const mainMarginTop = cssPx("--explorer-main-margin-top", 0);
         const shellHeight = Math.max(
-            420,
+            400,
             win.innerHeight - row.getBoundingClientRect().top - BOTTOM_PADDING
         );
         const logHeight = Math.max(
-            160,
+            180,
             shellHeight - compactHeight - sectionGap - mainMarginTop
         );
 

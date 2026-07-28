@@ -1,3 +1,402 @@
+/* Delay Prediction tab layout — mirrors Flight Explorer filter panel pattern */
+
+:root {
+    --delay-prediction-recommendation-height: 190px;
+    --delay-prediction-section-gap: 14px;
+    --delay-prediction-chrome-height: calc(
+        1rem + 3.75rem + 3rem + 2.25rem + 2rem + 0.5rem + 1.35rem
+    );
+    --delay-prediction-shell-height: calc(
+        100vh - var(--delay-prediction-chrome-height)
+    );
+    --delay-prediction-gauge-height: calc(
+        var(--delay-prediction-shell-height)
+        - var(--delay-prediction-recommendation-height)
+        - var(--delay-prediction-section-gap)
+    );
+}
+
+.page-subtitle--delay-prediction {
+    margin-bottom: var(--layout-section-gap) !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.delay-prediction-layout-marker)
+    > [data-testid="element-container"]:has(.page-subtitle--delay-prediction) {
+    margin-bottom: 15px !important;
+    padding-bottom: 0 !important;
+}
+
+.delay-prediction-layout-marker,
+.delay-prediction-filter-panel-marker,
+.delay-prediction-main-panel-marker,
+.delay-prediction-submit-marker {
+    display: none;
+}
+
+[data-testid="stVerticalBlock"]:has(.delay-prediction-layout-marker) {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.delay-prediction-layout-marker)
+    > [data-testid="stHorizontalBlock"]:has(.delay-prediction-filter-panel-marker) {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.delay-prediction-layout-marker)
+    > [data-testid="element-container"]:last-of-type {
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+}
+
+[data-testid="stVerticalBlock"]:has(.delay-prediction-layout-marker)
+    > [data-testid="element-container"]:last-of-type
+    iframe {
+    height: 0 !important;
+    min-height: 0 !important;
+    border: none !important;
+}
+
+[data-testid="stHorizontalBlock"]:has(.delay-prediction-filter-panel-marker) {
+    align-items: stretch !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    height: var(--delay-prediction-shell-height) !important;
+    min-height: var(--delay-prediction-shell-height) !important;
+    max-height: var(--delay-prediction-shell-height) !important;
+    overflow: hidden !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker) {
+    background-color: var(--surface-elevated) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 8px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    align-self: stretch !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker) > div {
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stForm"]
+    > div
+    > [data-testid="stVerticalBlock"] {
+    gap: 0.75rem !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"] {
+    gap: 0.75rem !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    .surface-panel-card__header {
+    margin-bottom: 10px !important;
+    flex-shrink: 0 !important;
+}
+
+.delay-prediction-form-section {
+    margin: 22px 0 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-label);
+    font-size: var(--font-size-section);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: var(--line-height-tight);
+    text-transform: uppercase;
+}
+
+.delay-prediction-form-section:first-of-type {
+    margin-top: 6px;
+    padding-top: 0;
+    border-top: none;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stHorizontalBlock"] {
+    gap: 0.45rem !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="column"] {
+    min-width: 0 !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stTextInput"] label {
+    margin-bottom: 2px !important;
+    font-size: var(--font-size-label) !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stSelectbox"],
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stDateInput"],
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stTimeInput"],
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stTextInput"] {
+    margin-bottom: 6px !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stSelectbox"] label,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stDateInput"] label,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stTimeInput"] label,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stTextInput"] label,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stWidgetLabel"],
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stWidgetLabel"] p {
+    margin-bottom: 2px !important;
+    font-size: var(--font-size-label) !important;
+}
+
+.delay-prediction-field-label {
+    margin: 6px 0 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-label);
+    font-weight: 600;
+    line-height: var(--line-height-tight);
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stTimeInput"] input,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stDateInput"] input,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-testid="stTextInput"] input {
+    background-color: #162032 !important;
+    border: 1px solid #23334d !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-size: var(--font-size-control) !important;
+    min-height: 42px !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div[data-baseweb="select"] > div {
+    font-size: var(--font-size-control) !important;
+    min-height: 42px !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:has(.delay-prediction-submit-marker)
+    + [data-testid="element-container"],
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stForm"]
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:last-child {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding-top: 10px !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker) div.stButton,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stForm"]
+    div.stButton {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding-top: 8px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: var(--surface-elevated) !important;
+    z-index: 1 !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker) div.stButton > button,
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    [data-testid="stForm"]
+    div.stButton
+    > button {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid #60a5fa !important;
+    border-radius: 8px !important;
+    box-shadow:
+        0 0 22px rgba(37, 99, 235, 0.42),
+        0 4px 14px rgba(0, 0, 0, 0.28) !important;
+    font-size: var(--font-size-body-sm) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    min-height: 50px !important;
+    margin-top: 0 !important;
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-filter-panel-marker)
+    div.stButton
+    > button:hover {
+    background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%) !important;
+    color: #ffffff !important;
+    border-color: #93c5fd !important;
+    box-shadow:
+        0 0 30px rgba(56, 189, 248, 0.55),
+        0 6px 16px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker) {
+    align-self: stretch !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin-top: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker) > div {
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--delay-prediction-section-gap) !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    box-sizing: border-box !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:nth-of-type(2) {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: var(--delay-prediction-gauge-height) !important;
+    max-height: var(--delay-prediction-gauge-height) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:nth-of-type(2)
+    > div {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:nth-of-type(3) {
+    flex: 0 0 var(--delay-prediction-recommendation-height) !important;
+    height: var(--delay-prediction-recommendation-height) !important;
+    min-height: var(--delay-prediction-recommendation-height) !important;
+    max-height: var(--delay-prediction-recommendation-height) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:nth-of-type(3)
+    > div {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    [data-testid="stHtml"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:nth-of-type(2)
+    [data-testid="stHtml"] {
+    height: var(--delay-prediction-gauge-height) !important;
+    max-height: var(--delay-prediction-gauge-height) !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    > div
+    > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:nth-of-type(3)
+    [data-testid="stHtml"] {
+    height: var(--delay-prediction-recommendation-height) !important;
+    max-height: var(--delay-prediction-recommendation-height) !important;
+}
+
+[data-testid="column"]:has(.delay-prediction-main-panel-marker)
+    [data-testid="stHtml"]
+    iframe {
+    display: block;
+    border: none;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
 /* Delay Prediction: shared iframe component styles */
 
 .prediction-placeholder {
@@ -9,8 +408,8 @@
     padding: 24px;
     color: var(--prediction-text-muted);
     text-align: center;
-    font-size: 1rem;
-    line-height: 1.7;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
 }
 
 .prediction-placeholder--recommendation {
@@ -46,7 +445,7 @@
         "Segoe UI",
         Roboto,
         sans-serif;
-    font-size: 58px;
+    font-size: var(--font-size-gauge-value);
     font-weight: 700;
     letter-spacing: -2px;
 }
@@ -59,7 +458,7 @@
         "Segoe UI",
         Roboto,
         sans-serif;
-    font-size: 19px;
+    font-size: var(--font-size-gauge-caption);
 }
 
 .prediction-gauge__risk {
@@ -69,7 +468,7 @@
         "Segoe UI",
         Roboto,
         sans-serif;
-    font-size: 22px;
+    font-size: var(--font-size-gauge-risk);
     font-weight: 700;
     letter-spacing: 1px;
 }
@@ -81,7 +480,7 @@
     gap: 5px;
     margin-top: -22px;
     color: var(--prediction-text-muted);
-    font-size: 0.8rem;
+    font-size: var(--font-size-gauge-scale);
     text-align: center;
 }
 
@@ -116,8 +515,8 @@
     box-sizing: border-box;
     padding-top: 8px;
     color: var(--prediction-text-primary);
-    font-size: 1rem;
-    line-height: 1.7;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
 }
 
 .prediction-recommendation__label {
@@ -138,12 +537,12 @@
     }
 
     .prediction-gauge__value {
-        font-size: 50px;
+        font-size: calc(var(--font-size-gauge-value) * 0.86);
     }
 
     .prediction-risk-scale {
         width: 100%;
-        font-size: 0.7rem;
+        font-size: var(--font-size-caption);
     }
 
     .prediction-recommendation {
