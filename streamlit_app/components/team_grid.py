@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 
-from components.info_panel import render_info_panel
+from components.info_panel import build_info_panel_html
 from config.project_info import TeamSection, team_photo_path
 from utils.media import file_to_data_uri, render_initials_avatar
 
@@ -27,14 +27,19 @@ def _render_member_card(member) -> str:
     )
 
 
-def render_team_panel(section: TeamSection) -> None:
-    """Render the team members panel."""
+def build_team_panel_html(section: TeamSection) -> str:
+    """Build the team members panel HTML."""
     cards = "".join(_render_member_card(member) for member in section.members)
-    body_html = f'<div class="project-team">{cards}</div>'
+    body_html = f'<div class="project-team project-team--strip">{cards}</div>'
 
-    render_info_panel(
+    return build_info_panel_html(
         title=section.title,
         icon_id=section.icon_id,
         body_html=body_html,
         panel_class="project-info-panel--team",
     )
+
+
+def render_team_panel(section: TeamSection) -> None:
+    """Render the team members panel."""
+    st.markdown(build_team_panel_html(section), unsafe_allow_html=True)

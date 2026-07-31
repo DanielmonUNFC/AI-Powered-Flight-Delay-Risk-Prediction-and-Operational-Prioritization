@@ -6,6 +6,13 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from styles.theme import COLORS
+from styles.typography import (
+    PLOTLY_FONT_SIZE,
+    PLOTLY_FONT_SIZE_ANNOTATION,
+    PLOTLY_FONT_SIZE_CAPTION,
+    PLOTLY_FONT_SIZE_TICK,
+    PLOTLY_FONT_SIZE_TITLE,
+)
 
 
 _POSITIVE_COLOR = "#d47a6b"
@@ -83,7 +90,7 @@ def build_global_feature_importance_chart(
         plot_bgcolor="rgba(0, 0, 0, 0)",
         font={
             "color": COLORS["text_secondary"],
-            "size": 12,
+            "size": PLOTLY_FONT_SIZE,
         },
         bargap=0.24,
         showlegend=False,
@@ -99,7 +106,7 @@ def build_global_feature_importance_chart(
                 "text": "Mean Absolute SHAP Value",
                 "font": {
                     "color": COLORS["text_muted"],
-                    "size": 12,
+                    "size": PLOTLY_FONT_SIZE_TITLE,
                 },
                 "standoff": 14,
             },
@@ -114,7 +121,7 @@ def build_global_feature_importance_chart(
             "fixedrange": True,
             "tickfont": {
                 "color": COLORS["text_muted"],
-                "size": 11,
+                "size": PLOTLY_FONT_SIZE_TICK,
             },
         },
         yaxis={
@@ -124,7 +131,7 @@ def build_global_feature_importance_chart(
             "fixedrange": True,
             "tickfont": {
                 "color": COLORS["text_secondary"],
-                "size": 11,
+                "size": PLOTLY_FONT_SIZE_TICK,
             },
         },
     )
@@ -206,7 +213,7 @@ def build_local_prediction_explanation_chart(
             textposition="outside",
             textfont={
                 "color": COLORS["text_secondary"],
-                "size": 11,
+                "size": PLOTLY_FONT_SIZE_TICK,
             },
             cliponaxis=False,
             hovertemplate=(
@@ -237,7 +244,7 @@ def build_local_prediction_explanation_chart(
             textposition="outside",
             textfont={
                 "color": COLORS["text_secondary"],
-                "size": 11,
+                "size": PLOTLY_FONT_SIZE_TICK,
             },
             cliponaxis=False,
             hovertemplate=(
@@ -280,7 +287,7 @@ def build_local_prediction_explanation_chart(
         xanchor="right",
         yanchor="top",
         font={
-            "size": 14,
+            "size": PLOTLY_FONT_SIZE_ANNOTATION,
             "color": COLORS["text_primary"],
         },
     )
@@ -295,7 +302,7 @@ def build_local_prediction_explanation_chart(
         align="left",
         xanchor="left",
         font={
-            "size": 11,
+            "size": PLOTLY_FONT_SIZE_CAPTION,
             "color": COLORS["text_muted"],
         },
     )
@@ -314,7 +321,7 @@ def build_local_prediction_explanation_chart(
         plot_bgcolor="rgba(0, 0, 0, 0)",
         font={
             "color": COLORS["text_secondary"],
-            "size": 12,
+            "size": PLOTLY_FONT_SIZE,
         },
         showlegend=False,
         bargap=0.28,
@@ -330,7 +337,7 @@ def build_local_prediction_explanation_chart(
                 "text": "Feature Contribution to Delay Risk",
                 "font": {
                     "color": COLORS["text_muted"],
-                    "size": 12,
+                    "size": PLOTLY_FONT_SIZE_TITLE,
                 },
                 "standoff": 14,
             },
@@ -346,7 +353,7 @@ def build_local_prediction_explanation_chart(
             "fixedrange": True,
             "tickfont": {
                 "color": COLORS["text_muted"],
-                "size": 11,
+                "size": PLOTLY_FONT_SIZE_TICK,
             },
         },
         yaxis={
@@ -356,7 +363,7 @@ def build_local_prediction_explanation_chart(
             "fixedrange": True,
             "tickfont": {
                 "color": COLORS["text_secondary"],
-                "size": 11,
+                "size": PLOTLY_FONT_SIZE_TICK,
             },
         },
     )

@@ -13,6 +13,7 @@ from components.prediction_gauge import (
 )
 from components.surface_card import render_html_panel
 from styles.theme import COLORS
+from styles.typography import typography_css_variables
 
 
 _PREDICTION_CSS_PATH = (
@@ -44,6 +45,7 @@ def render_prediction_placeholder() -> None:
         icon_id="delay_prediction",
         body_html=body_html,
         height=410,
+        fill_height=True,
         extra_css=_prediction_component_css(),
     )
 
@@ -68,6 +70,7 @@ def render_recommendation_placeholder() -> None:
         icon_id="insight",
         body_html=body_html,
         height=190,
+        fill_height=True,
         extra_css=_prediction_component_css(),
     )
 
@@ -96,7 +99,8 @@ def render_prediction_result(
         title="Risk Assessment Diagnostic",
         icon_id="delay_prediction",
         body_html=body_html,
-        height=430,
+        height=410,
+        fill_height=True,
         extra_css=_prediction_component_css(),
     )
 
@@ -132,6 +136,7 @@ def render_recommendation_result(
         icon_id="insight",
         body_html=body_html,
         height=190,
+        fill_height=True,
         extra_css=_prediction_component_css(),
     )
 
@@ -218,6 +223,7 @@ def _prediction_component_css() -> str:
     """Return iframe-ready prediction styles."""
 
     theme_variables = f"""
+        {typography_css_variables()}
         :root {{
             --prediction-text-primary:
                 {COLORS["text_primary"]};

@@ -1,11 +1,50 @@
-from __future__ import annotations
-
-import numpy as np
 import pandas as pd
+import numpy as np
+
+from datetime import date, time
+from typing import Optional
+
+from services.prediction_features import PredictionFeatures, build_prediction_features
 
 
-def get_overview_kpis() -> dict[str, object]:
-    """Return top-level operational metrics for the Overview page."""
+def _use_live_data() -> bool:
+    """Return True when Databricks-backed dashboard data should be used."""
+    try:
+        from services.data_access import databricks_configured
+
+        return databricks_configured()
+    except ImportError:
+        return False
+
+
+def _format_count(value: float) -> str:
+    return f"{int(value):,}"
+
+
+def get_overview_kpis():
+    """Returns top-level operational metrics for the Overview page."""
+    if _use_live_data():
+        from services.data_access import load_dashboard_section
+
+        overview_df = load_dashboard_section("overview_kpi")
+        lookup = {
+            row["metric_name"]: row
+            for _, row in overview_df.iterrows()
+        }
+        return {
+            "total_flights": _format_count(lookup["total_flights"]["metric_value"]),
+            "total_flights_sub": "Notebook 11 output",
+            "total_flights_positive": True,
+            "avg_delay_rate": f"{lookup['avg_delay_rate']['metric_value']:.1f}%",
+            "avg_delay_sub": "Model-eligible flights",
+            "avg_delay_positive": False,
+            "avg_arr_delay": f"{lookup['avg_arr_delay']['metric_value']:.1f} min",
+            "avg_arr_sub": "Average ArrDelay",
+            "avg_arr_positive": False,
+            "cancel_rate": f"{lookup['cancel_rate']['metric_value']:.2f}%",
+            "cancel_rate_sub": "Cancelled flights",
+            "cancel_rate_positive": True,
+        }
 
     return {
         "total_flights": "6,842,105",
@@ -22,196 +61,181 @@ def get_overview_kpis() -> dict[str, object]:
         "cancel_rate_positive": True,
     }
 
+def get_monthly_delay_trend():
+    """Provides monthly delay rate performance for 2025."""
+    if _use_live_data():
+        from services.data_access import load_dashboard_section
 
-def get_monthly_delay_trend() -> pd.DataFrame:
-    """Return monthly delay-rate performance for 2025."""
-
-    return pd.DataFrame(
-        {
-            "Month": [
-                "Jan",
-                "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun",
-                "Jul",
-                "Aug",
-                "Sep",
-                "Oct",
-                "Nov",
-                "Dec",
-            ],
-            "DelayRate": [
-                18.2,
-                16.5,
-                19.4,
-                17.8,
-                20.1,
-                28.5,
-                27.2,
-                23.4,
-                15.8,
-                16.2,
-                17.5,
-                29.1,
-            ],
-        }
-    )
-
-
-def get_delay_causes_breakdown() -> pd.DataFrame:
-    """Return accumulated delay-minute distribution by cause."""
-
-    return pd.DataFrame(
-        {
-            "Cause": [
-                "Late Aircraft",
-                "Carrier",
-                "Weather",
-                "NAS",
-            ],
-            "Percentage": [38, 26, 18, 18],
-        }
-    )
-
-
-def get_explorer_data() -> pd.DataFrame:
-    """
-    Generate a synthetic flight dataset for dashboard prototyping.
-
-    The fixed random seed ensures that the same mock dataset is generated
-    on every application run.
-    """
-
-    carriers = [
-        "Delta Air Lines",
-        "American Airlines",
-        "United Airlines",
-        "Southwest Airlines",
-        "JetBlue",
-    ]
-
-    origins = [
-        "KATL",
-        "KORD",
-        "KDFW",
-        "KDEN",
-        "KJFK",
-    ]
-
-    destinations = [
-        "KLAX",
-        "KMIA",
-        "KSFO",
-        "KBOS",
-        "KSEA",
-        "KORD",
-        "KDFW",
-    ]
-
-    months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ]
-
-    month_probabilities = [
-        0.08,
-        0.07,
-        0.08,
-        0.08,
-        0.09,
-        0.11,
-        0.10,
-        0.09,
-        0.07,
-        0.08,
-        0.07,
-        0.08,
-    ]
-
-    rng = np.random.default_rng(42)
-    rows: list[dict[str, object]] = []
-
-    for index in range(1, 1001):
-        carrier = rng.choice(
-            carriers,
-            p=[0.30, 0.25, 0.20, 0.15, 0.10],
-        )
-
-        origin = rng.choice(
-            origins,
-            p=[0.35, 0.20, 0.20, 0.15, 0.10],
-        )
-
-        valid_destinations = [
-            destination
-            for destination in destinations
-            if destination != origin
-        ]
-
-        destination = rng.choice(valid_destinations)
-        month = rng.choice(months, p=month_probabilities)
-
-        hour = int(rng.integers(6, 23))
-        minute = int(rng.choice([0, 15, 30, 45]))
-
-        if hour < 12:
-            departure_window = "Morning"
-        elif hour < 18:
-            departure_window = "Afternoon"
-        else:
-            departure_window = "Evening"
-
-        probability = round(float(rng.uniform(0.10, 0.95)), 3)
-        status = _classify_risk(probability)
-
-        rows.append(
+        monthly_df = load_dashboard_section("monthly_trend")
+        return pd.DataFrame(
             {
-                "Flight": f"FL-{1000 + index}",
-                "Carrier": carrier,
-                "Origin": origin,
-                "Destination": destination,
-                "SchedDep": f"{hour:02d}:{minute:02d}",
-                "DepWindow": departure_window,
-                "DelayProb": probability,
-                "DelayProbPct": f"{probability * 100:.1f}%",
-                "Status": status,
-                "Month": month,
+                "Month": monthly_df["dimension_1"],
+                "DelayRate": monthly_df["metric_value"].astype(float),
             }
         )
 
+    return pd.DataFrame({
+        "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        "DelayRate": [18.2, 16.5, 19.4, 17.8, 20.1, 28.5, 27.2, 23.4, 15.8, 16.2, 17.5, 29.1]
+    })
+
+def get_delay_causes_breakdown():
+    """Provides accumulated delay minutes distribution by cause."""
+    if _use_live_data():
+        from services.data_access import load_dashboard_section
+
+        causes_df = load_dashboard_section("delay_cause")
+        return pd.DataFrame(
+            {
+                "Cause": causes_df["dimension_1"],
+                "Percentage": causes_df["metric_value"].astype(float),
+            }
+        )
+
+    return pd.DataFrame({
+        "Cause": ["Late Aircraft", "Carrier", "Weather", "NAS"],
+        "Percentage": [38, 26, 18, 18],
+    })
+
+def get_explorer_data():
+    """Generates a rich synthetic dataset ensuring data presence across common filter combinations."""
+    if _use_live_data():
+        from services.data_access import load_explorer_data
+
+        explorer_df = load_explorer_data()
+        if "DepWindow" not in explorer_df.columns and "DepartureWindow" in explorer_df.columns:
+            explorer_df["DepWindow"] = explorer_df["DepartureWindow"]
+        return explorer_df
+
+    carriers = ["Delta Air Lines", "American Airlines", "United Airlines", "Southwest Airlines", "JetBlue"]
+    origins = ["KATL", "KORD", "KDFW", "KDEN", "KJFK"]
+    dests = ["KLAX", "KMIA", "KSFO", "KBOS", "KSEA", "KORD", "KDFW"]
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    
+    rows = []
+    np.random.seed(42)
+    
+    # Generate 1,000 synthetic flight entries
+    for i in range(1, 1001):
+        carrier = np.random.choice(carriers, p=[0.3, 0.25, 0.2, 0.15, 0.1])
+        origin = np.random.choice(origins, p=[0.35, 0.2, 0.2, 0.15, 0.1])
+        valid_dests = [d for d in dests if d != origin]
+        dest = np.random.choice(valid_dests)
+        month = np.random.choice(months, p=[0.08, 0.07, 0.08, 0.08, 0.09, 0.11, 0.1, 0.09, 0.07, 0.08, 0.07, 0.08])
+        
+        hour = np.random.randint(6, 23)
+        minute = int(np.random.choice([0, 15, 30, 45]))
+        if hour < 12:
+            dep_window = "Morning"
+        elif hour < 18:
+            dep_window = "Afternoon"
+        else:
+            dep_window = "Evening"
+
+        prob = round(float(np.random.uniform(0.1, 0.95)), 3)
+        status = "CRITICAL" if prob > 0.8 else ("HIGH" if prob > 0.5 else "LOW")
+
+        rows.append({
+            "Flight": f"FL-{1000 + i}",
+            "Carrier": carrier,
+            "Origin": origin,
+            "Destination": dest,
+            "SchedDep": f"{hour:02d}:{minute:02d}",
+            "DepWindow": dep_window,
+            "DelayProb": prob,
+            "DelayProbPct": f"{prob * 100:.1f}%",
+            "Status": status,
+            "Month": month,
+        })
     return pd.DataFrame(rows)
 
 
+def get_prioritization_summary() -> dict[str, str]:
+    """Backward-compatible summary accessor for prioritization prototypes."""
+    from services.prioritization_engine import (
+        build_prioritization_summary,
+        format_summary_values,
+        get_prioritization_pool,
+        optimize_flight_selection,
+    )
+    from config.prioritization import DEFAULT_CAPACITY_K
+
+    pool = get_prioritization_pool()
+    selected_count = int(optimize_flight_selection(pool, capacity_k=DEFAULT_CAPACITY_K).sum())
+    summary = build_prioritization_summary(
+        capacity_k=DEFAULT_CAPACITY_K,
+        selected_count=selected_count,
+    )
+    return format_summary_values(summary)
+
+
+def get_prioritization_ranking() -> pd.DataFrame:
+    """Backward-compatible ranking accessor for prioritization prototypes."""
+    from services.prioritization_engine import build_prioritization_ranking
+    from config.prioritization import DEFAULT_CAPACITY_K
+
+    return build_prioritization_ranking(capacity_k=DEFAULT_CAPACITY_K)
+
+
 def get_mock_prediction(
+    *,
     airline: str,
+    flight_number: Optional[str],
     origin: str,
     destination: str,
-    departure_time: str,
+    flight_date: date,
+    scheduled_departure: time,
+    scheduled_arrival: time,
 ) -> dict[str, object]:
     """
     Return a deterministic mock delay-risk prediction.
 
-    The same set of inputs always produces the same result, which makes the
-    prototype predictable during testing and demonstrations.
+    Derived calendar, schedule, route, and historical features are computed
+    internally from the visible form inputs.
     """
 
-    seed_text = f"{airline}|{origin}|{destination}|{departure_time}"
-    seed_value = sum(ord(character) for character in seed_text)
+    features = build_prediction_features(
+        airline=airline,
+        flight_number=flight_number,
+        origin=origin,
+        destination=destination,
+        flight_date=flight_date,
+        scheduled_departure=scheduled_departure,
+        scheduled_arrival=scheduled_arrival,
+    )
 
+    seed_text = (
+        f"{features.airline_code}|{features.origin_code}|{features.destination_code}|"
+        f"{features.flight_date.isoformat()}|{features.scheduled_departure.strftime('%H:%M')}|"
+        f"{features.scheduled_arrival.strftime('%H:%M')}|{features.flight_number or ''}|"
+        f"{features.distance_miles}|{features.historical_delay_rate:.3f}"
+    )
+    seed_value = sum(ord(character) for character in seed_text)
     rng = np.random.default_rng(seed_value)
-    probability = round(float(rng.uniform(0.18, 0.92)), 3)
+
+    historical_adjustment = (features.historical_delay_rate - 0.20) * 0.35
+    season_adjustment = {
+        "Winter": 0.04,
+        "Spring": -0.01,
+        "Summer": 0.06,
+        "Fall": 0.01,
+    }[features.season]
+    weekend_adjustment = 0.03 if features.weekend_indicator == "Weekend" else -0.01
+    hour_adjustment = {
+        "Morning": -0.03,
+        "Afternoon": 0.01,
+        "Evening": 0.04,
+        "Night": 0.02,
+    }[features.departure_hour_category]
+
+    probability = float(
+        rng.uniform(0.18, 0.72)
+        + historical_adjustment
+        + season_adjustment
+        + weekend_adjustment
+        + hour_adjustment
+    )
+    probability = round(min(max(probability, 0.08), 0.95), 3)
     risk_level = _classify_risk(probability)
 
     return {
@@ -219,24 +243,19 @@ def get_mock_prediction(
         "probability_pct": f"{probability * 100:.1f}%",
         "risk_level": risk_level,
         "recommended_action": _recommended_action(risk_level),
+        "derived_features": _features_to_dict(features),
     }
 
 
 def _classify_risk(probability: float) -> str:
     """Convert a delay probability into an operational risk level."""
 
-    if not 0.0 <= probability <= 1.0:
-        raise ValueError("Probability must be between 0 and 1.")
-
     if probability < 0.30:
         return "LOW"
-
     if probability < 0.60:
         return "MEDIUM"
-
     if probability < 0.80:
         return "HIGH"
-
     return "CRITICAL"
 
 
@@ -260,17 +279,35 @@ def _recommended_action(risk_level: str) -> str:
             "aircraft, crew, gate, and passenger recovery resources."
         ),
     }
+    return actions.get(
+        risk_level,
+        "No operational recommendation is currently available.",
+    )
 
-    try:
-        return actions[risk_level]
-    except KeyError as exc:
-        raise ValueError(
-            f"Unsupported risk level: {risk_level}"
-        ) from exc
 
-        
+def _features_to_dict(features: PredictionFeatures) -> dict[str, object]:
+    """Serialize derived features for future model integration and debugging."""
+
+    return {
+        "distance_miles": features.distance_miles,
+        "scheduled_elapsed_minutes": features.scheduled_elapsed_minutes,
+        "day_of_week": features.day_of_week,
+        "quarter": features.quarter,
+        "season": features.season,
+        "weekend_indicator": features.weekend_indicator,
+        "departure_hour_category": features.departure_hour_category,
+        "historical_delay_rate": features.historical_delay_rate,
+        "historical_delay_rate_pct": f"{features.historical_delay_rate * 100:.1f}%",
+    }
+
+
 def get_global_feature_importance() -> pd.DataFrame:
-    """Return mock global SHAP feature importance values."""
+    """Return global SHAP feature importance values."""
+
+    if _use_live_data():
+        from services.data_access import load_global_feature_importance
+
+        return load_global_feature_importance()
 
     return pd.DataFrame(
         {
@@ -304,6 +341,11 @@ def get_global_feature_importance() -> pd.DataFrame:
 
 def get_local_prediction_explanation() -> dict[str, object]:
     """Return a mock local SHAP explanation for one flight."""
+
+    if _use_live_data():
+        from services.data_access import load_local_prediction_explanation
+
+        return load_local_prediction_explanation()
 
     return {
         "flight_id": "DL882",
