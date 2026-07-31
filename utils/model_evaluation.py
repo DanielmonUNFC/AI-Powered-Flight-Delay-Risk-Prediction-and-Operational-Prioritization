@@ -225,3 +225,95 @@ def subgroup_error_analysis(
         ["subgroup_type", "delay_recall"],
         ascending=[True, True],
     )
+
+
+def confusion_matrix_summary(
+    y_true: pd.Series,
+    y_pred: pd.Series,
+) -> pd.DataFrame:
+    """Build a labeled confusion matrix for binary classification."""
+    labels = y_true.astype(int).to_numpy()
+    predictions = y_pred.astype(int).to_numpy()
+
+    true_negatives = int(np.sum((predictions == 0) & (labels == 0)))
+    false_positives = int(np.sum((predictions == 1) & (labels == 0)))
+    false_negatives = int(np.sum((predictions == 0) & (labels == 1)))
+    true_positives = int(np.sum((predictions == 1) & (labels == 1)))
+
+    return pd.DataFrame(
+        [
+            {
+                "actual_on_time_predicted_on_time": true_negatives,
+                "actual_on_time_predicted_delayed": false_positives,
+                "actual_delayed_predicted_on_time": false_negatives,
+                "actual_delayed_predicted_delayed": true_positives,
+            }
+        ]
+    )
+
+
+def plot_confusion_matrix(
+    y_true: pd.Series,
+    y_pred: pd.Series,
+):
+    """Plot a binary confusion matrix heatmap."""
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+
+    matrix = confusion_matrix(
+        y_true.astype(int),
+        y_pred.astype(int),
+        labels=[0, 1],
+    )
+    figure, axis = plt.subplots(figsize=(6, 5))
+    ConfusionMatrixDisplay(
+        confusion_matrix=matrix,
+        display_labels=["On-time", "Delayed"],
+    ).plot(ax=axis, colorbar=False, cmap="Blues")
+    axis.set_title("Holdout confusion matrix")
+    figure.tight_layout()
+    return figure
+
+
+def plot_roc_pr_curves(
+    y_true: pd.Series,
+    y_prob: pd.Series,
+):
+    """Plot ROC and precision-recall curves for binary probabilities."""
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import (
+        PrecisionRecallDisplay,
+        RocCurveDisplay,
+        average_precision_score,
+        roc_auc_score,
+    )
+
+    labels = y_true.astype(int).to_numpy()
+    probabilities = y_prob.astype(float).to_numpy()
+
+    figure, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    RocCurveDisplay.from_predictions(
+        labels,
+        probabilities,
+        ax=axes[0],
+        name="Logistic Regression",
+    )
+    axes[0].set_title(
+        f"ROC curve (AUC={roc_auc_score(labels, probabilities):.4f})"
+    )
+
+    PrecisionRecallDisplay.from_predictions(
+        labels,
+        probabilities,
+        ax=axes[1],
+        name="Logistic Regression",
+    )
+    axes[1].set_title(
+        "Precision-recall curve "
+        f"(AP={average_precision_score(labels, probabilities):.4f})"
+    )
+
+    figure.tight_layout()
+    return figure
+

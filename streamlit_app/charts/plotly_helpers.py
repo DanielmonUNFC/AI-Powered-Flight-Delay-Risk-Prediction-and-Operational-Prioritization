@@ -5,6 +5,7 @@ from typing import Any
 import plotly.graph_objects as go
 
 from styles.theme import CHART_HEIGHT, COLORS
+from styles.typography import PLOTLY_FONT_SIZE
 
 
 def transparent_layout(**overrides: Any) -> dict[str, Any]:
@@ -12,7 +13,7 @@ def transparent_layout(**overrides: Any) -> dict[str, Any]:
     layout = {
         "paper_bgcolor": "rgba(0,0,0,0)",
         "plot_bgcolor": "rgba(0,0,0,0)",
-        "font": {"color": COLORS["text_secondary"], "size": 12},
+        "font": {"color": COLORS["text_secondary"], "size": PLOTLY_FONT_SIZE},
         "margin": {"l": 0, "r": 0, "t": 10, "b": 0},
         "height": CHART_HEIGHT,
         "hovermode": "x unified",

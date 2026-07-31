@@ -1,8 +1,4 @@
-"""Static content for the Project Information dashboard tab.
-
-Edit this file to update copy, team members, methodology steps, or tech stack
-without touching layout components.
-"""
+"""Static content for the Project Overview dashboard tab."""
 
 from __future__ import annotations
 
@@ -10,12 +6,17 @@ from dataclasses import dataclass
 from typing import Final
 
 from config.panel_icons import (
+    ICON_DATASET,
     ICON_METHODOLOGY,
     ICON_OBJECTIVE,
+    ICON_PREDICTION_TARGET,
+    ICON_RESEARCH_QUESTIONS,
     ICON_TEAM,
     ICON_TECH_STACK,
     TECH_ICON_DATABRICKS,
+    TECH_ICON_DELTA_LAKE,
     TECH_ICON_FASTAPI,
+    TECH_ICON_GITHUB,
     TECH_ICON_ORTOOLS,
     TECH_ICON_PYSPARK,
     TECH_ICON_PYTHON,
@@ -28,11 +29,45 @@ from utils.media import asset_path
 
 @dataclass(frozen=True)
 class InfoSection:
-    """Text block shown inside a project information panel."""
+    """Text block shown inside a project overview panel."""
 
     title: str
     icon_id: str
     paragraphs: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class FactItem:
+    """Single label/value pair for a compact fact card."""
+
+    label: str
+    value: str
+
+
+@dataclass(frozen=True)
+class FactCardSection:
+    """Compact fact card panel content."""
+
+    title: str
+    icon_id: str
+    facts: tuple[FactItem, ...]
+
+
+@dataclass(frozen=True)
+class ResearchQuestion:
+    """Research question entry linked to dashboard capabilities."""
+
+    code: str
+    text: str
+
+
+@dataclass(frozen=True)
+class ResearchQuestionsSection:
+    """Research questions panel content."""
+
+    title: str
+    icon_id: str
+    questions: tuple[ResearchQuestion, ...]
 
 
 @dataclass(frozen=True)
@@ -70,36 +105,68 @@ class TechStackSection:
 
 
 @dataclass(frozen=True)
-class ProjectInformationContent:
-    """All predefined content for the Project Information tab."""
+class ProjectOverviewContent:
+    """All predefined content for the Project Overview tab."""
 
     business_objective: InfoSection
+    dataset: FactCardSection
+    prediction_target: FactCardSection
+    research_questions: ResearchQuestionsSection
     methodology: InfoSection
     methodology_steps: tuple[str, ...]
-    team: TeamSection
     tech_stack: TechStackSection
+    team: TeamSection
 
 
 BUSINESS_OBJECTIVE: Final[InfoSection] = InfoSection(
-    title="Business & Technical Objective",
+    title="Business Objective",
     icon_id=ICON_OBJECTIVE,
     paragraphs=(
         (
             "Develop an AI-powered decision support system that estimates the probability "
             "that a scheduled flight will arrive at least 15 minutes late (ArrDel15) before "
-            "departure, using the 2025 BTS Airline On-Time Performance dataset. The system "
-            "helps airline operations managers prioritize high-risk flights when operational "
-            "review capacity is limited—moving from reactive reporting to proactive, "
-            "evidence-based planning."
+            "departure. The system helps airline operations managers prioritize high-risk "
+            "flights when operational review capacity is limited—moving from reactive "
+            "reporting to proactive, evidence-based planning."
         ),
         (
-            "Technically, the project implements the full analytics lifecycle: data "
-            "acquisition and cleaning on Databricks/PySpark, schedule-time feature "
-            "engineering with a target-leakage audit, descriptive and diagnostic analytics, "
-            "predictive modeling (Logistic Regression, Random Forest, XGBoost), SHAP "
-            "explainability, and prescriptive optimization (OR-Tools), integrated through "
-            "a FastAPI backend and this executive Streamlit dashboard."
+            "The solution connects descriptive analytics, predictive modeling, SHAP "
+            "explainability, and operational prioritization in a single executive dashboard "
+            "backed by reproducible Delta Lake datasets and version-controlled pipelines."
         ),
+    ),
+)
+
+DATASET_INFORMATION: Final[FactCardSection] = FactCardSection(
+    title="Dataset Information",
+    icon_id=ICON_DATASET,
+    facts=(
+        FactItem("Source", "Bureau of Transportation Statistics"),
+        FactItem("Dataset", "Airline On-Time Performance"),
+        FactItem("Study Period", "2025"),
+        FactItem("Flights", "~6 million"),
+    ),
+)
+
+PREDICTION_TARGET: Final[FactCardSection] = FactCardSection(
+    title="Prediction Target",
+    icon_id=ICON_PREDICTION_TARGET,
+    facts=(
+        FactItem("Target", "ArrDel15"),
+        FactItem("Prediction Type", "Binary Classification"),
+        FactItem("Positive Class", "Arrival Delay ≥15 min"),
+    ),
+)
+
+RESEARCH_QUESTIONS: Final[ResearchQuestionsSection] = ResearchQuestionsSection(
+    title="Research Questions",
+    icon_id=ICON_RESEARCH_QUESTIONS,
+    questions=(
+        ResearchQuestion("RQ1", "Predict Delay Risk"),
+        ResearchQuestion("RQ2", "Delay Factors"),
+        ResearchQuestion("RQ3", "Operational Differences"),
+        ResearchQuestion("RQ4", "Operational Prioritization"),
+        ResearchQuestion("RQ5", "Explainability"),
     ),
 )
 
@@ -110,18 +177,38 @@ METHODOLOGY: Final[InfoSection] = InfoSection(
 )
 
 METHODOLOGY_STEPS: Final[tuple[str, ...]] = (
-    "BTS Data Ingestion",
+    "Business Understanding",
+    "Data Ingestion",
+    "Data Profiling",
     "Data Cleaning",
+    "Statistical Analysis",
     "Feature Engineering",
-    "Leakage Audit",
-    "Descriptive Analytics",
     "Predictive Modeling",
+    "Model Evaluation",
     "SHAP Explainability",
-    "Prescriptive Optimization",
+    "Operational Prioritization",
+    "Dashboard Data Preparation",
+)
+
+TECH_STACK_SECTION: Final[TechStackSection] = TechStackSection(
+    title="Technology Stack",
+    icon_id=ICON_TECH_STACK,
+    items=(
+        TechStackItem("Databricks", TECH_ICON_DATABRICKS),
+        TechStackItem("Delta Lake", TECH_ICON_DELTA_LAKE),
+        TechStackItem("PySpark", TECH_ICON_PYSPARK),
+        TechStackItem("Python", TECH_ICON_PYTHON),
+        TechStackItem("XGBoost", TECH_ICON_XGBOOST),
+        TechStackItem("SHAP", TECH_ICON_SHAP),
+        TechStackItem("OR-Tools", TECH_ICON_ORTOOLS),
+        TechStackItem("FastAPI", TECH_ICON_FASTAPI),
+        TechStackItem("Streamlit", TECH_ICON_STREAMLIT),
+        TechStackItem("GitHub", TECH_ICON_GITHUB),
+    ),
 )
 
 TEAM_SECTION: Final[TeamSection] = TeamSection(
-    title="Capstone Team Members",
+    title="Team Members",
     icon_id=ICON_TEAM,
     members=(
         TeamMember("Daniel Montero", "team/daniel_montero.jpg"),
@@ -131,28 +218,19 @@ TEAM_SECTION: Final[TeamSection] = TeamSection(
     ),
 )
 
-TECH_STACK_SECTION: Final[TechStackSection] = TechStackSection(
-    title="Tech Stack",
-    icon_id=ICON_TECH_STACK,
-    items=(
-        TechStackItem("Databricks", TECH_ICON_DATABRICKS),
-        TechStackItem("PySpark", TECH_ICON_PYSPARK),
-        TechStackItem("Python", TECH_ICON_PYTHON),
-        TechStackItem("XGBoost", TECH_ICON_XGBOOST),
-        TechStackItem("SHAP", TECH_ICON_SHAP),
-        TechStackItem("OR-Tools", TECH_ICON_ORTOOLS),
-        TechStackItem("FastAPI", TECH_ICON_FASTAPI),
-        TechStackItem("Streamlit", TECH_ICON_STREAMLIT),
-    ),
-)
-
-PROJECT_INFORMATION: Final[ProjectInformationContent] = ProjectInformationContent(
+PROJECT_OVERVIEW: Final[ProjectOverviewContent] = ProjectOverviewContent(
     business_objective=BUSINESS_OBJECTIVE,
+    dataset=DATASET_INFORMATION,
+    prediction_target=PREDICTION_TARGET,
+    research_questions=RESEARCH_QUESTIONS,
     methodology=METHODOLOGY,
     methodology_steps=METHODOLOGY_STEPS,
-    team=TEAM_SECTION,
     tech_stack=TECH_STACK_SECTION,
+    team=TEAM_SECTION,
 )
+
+# Backward-compatible alias for imports that still reference PROJECT_INFORMATION.
+PROJECT_INFORMATION = PROJECT_OVERVIEW
 
 
 def team_photo_path(member: TeamMember):

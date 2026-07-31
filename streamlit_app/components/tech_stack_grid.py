@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 
-from components.info_panel import render_info_panel
+from components.info_panel import build_info_panel_html
 from config.project_info import TechStackSection, tech_icon_path
 from utils.media import file_to_data_uri
 
@@ -32,14 +32,19 @@ def _render_tech_item(item) -> str:
     )
 
 
-def render_tech_stack_panel(section: TechStackSection) -> None:
-    """Render the technology stack panel."""
+def build_tech_stack_panel_html(section: TechStackSection) -> str:
+    """Build the technology stack panel HTML."""
     cards = "".join(_render_tech_item(item) for item in section.items)
     body_html = f'<div class="project-tech">{cards}</div>'
 
-    render_info_panel(
+    return build_info_panel_html(
         title=section.title,
         icon_id=section.icon_id,
         body_html=body_html,
         panel_class="project-info-panel--tech",
     )
+
+
+def render_tech_stack_panel(section: TechStackSection) -> None:
+    """Render the technology stack panel."""
+    st.markdown(build_tech_stack_panel_html(section), unsafe_allow_html=True)

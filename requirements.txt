@@ -3,6 +3,8 @@
 # ==========================================
 pandas
 numpy
+scipy
+scikit-posthocs
 pyspark
 
 # ==========================================
@@ -29,6 +31,9 @@ streamlit
 # ==========================================
 fastapi
 uvicorn
+databricks-sql-connector
+pydantic-settings
+python-dotenv
 
 # ==========================================
 # Testing

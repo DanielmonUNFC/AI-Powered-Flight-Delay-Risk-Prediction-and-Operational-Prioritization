@@ -6,16 +6,18 @@ import pandas as pd
 
 from components.surface_card import render_html_panel
 from styles.theme import COLORS, COMPACT_PANEL_HEIGHT, EXPLORER_FLIGHT_LOG_FALLBACK_HEIGHT
+from styles.typography import typography_css_variables
 
 COMPACT_TABLE_HEIGHT = COMPACT_PANEL_HEIGHT
 
 
 def _base_table_styles() -> str:
     return f"""
+        {typography_css_variables()}
         .surface-table {{
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.82rem;
+            font-size: var(--font-size-body-sm);
         }}
         .surface-table thead th {{
             background-color: #162032;
@@ -94,7 +96,7 @@ def _scrollable_table_styles(*, fluid: bool = False) -> str:
             padding-top: 8px;
             border-top: 1px solid {COLORS["border"]};
             color: {COLORS["text_muted"]};
-            font-size: 0.75rem;
+            font-size: var(--font-size-caption);
             flex-shrink: 0;
         }}
     """
@@ -118,10 +120,11 @@ def _build_table_html(df: pd.DataFrame, row_class_col: Optional[str] = None) -> 
     )
 
 
-def _scroll_footer(row_count: int) -> str:
+def _scroll_footer(row_count: int, footer_text: str = "") -> str:
+    caption = footer_text or f"Showing {row_count} flights · scroll to browse"
     return f"""
         <div class="table-footer">
-            <span>Showing {row_count} flights · scroll to browse</span>
+            <span>{caption}</span>
         </div>
     """
 
@@ -135,6 +138,8 @@ def render_table_panel(
     scrollable: bool = False,
     row_class_col: Optional[str] = None,
     header_action: str = "",
+    extra_css: str = "",
+    footer_text: str = "",
 ) -> None:
     """Render a dataframe inside the standard surface panel card."""
     if df.empty:
@@ -143,11 +148,12 @@ def render_table_panel(
             icon_id=icon_id,
             body_html=f'<p style="color:{COLORS["text_muted"]}; margin:0;">No data available.</p>',
             height=180,
-            extra_css=_base_table_styles(),
+            extra_css=_base_table_styles() + extra_css,
         )
         return
 
     table_html = _build_table_html(df, row_class_col=row_class_col)
+    panel_extra_css = _base_table_styles() + extra_css
 
     if scrollable:
         panel_height = height or EXPLORER_FLIGHT_LOG_FALLBACK_HEIGHT
@@ -158,11 +164,11 @@ def render_table_panel(
             icon_id=icon_id,
             body_html=table_html,
             height=panel_height,
-            footer_html=_scroll_footer(len(df)),
+            footer_html=_scroll_footer(len(df), footer_text),
             scrollable=True,
             fill_height=use_fluid_layout,
             header_action=header_action,
-            extra_css=_scrollable_table_styles(fluid=use_fluid_layout),
+            extra_css=_scrollable_table_styles(fluid=use_fluid_layout) + extra_css,
         )
         return
 
@@ -171,5 +177,5 @@ def render_table_panel(
         icon_id=icon_id,
         body_html=table_html,
         height=height or COMPACT_TABLE_HEIGHT,
-        extra_css=_base_table_styles(),
+        extra_css=panel_extra_css,
     )
