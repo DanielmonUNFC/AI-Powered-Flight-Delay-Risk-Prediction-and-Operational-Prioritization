@@ -146,6 +146,72 @@ def one_way_anova(
     }
 
 
+def kruskal_wallis_test(
+    groups: Iterable[pd.Series],
+) -> dict[str, float | bool | str]:
+    """Compare continuous distributions across independent groups."""
+    clean_groups = [
+        group.dropna().astype(float)
+        for group in groups
+        if len(group.dropna()) >= 2
+    ]
+
+    if len(clean_groups) < 2:
+        raise ValueError(
+            "At least two groups with two observations are required."
+        )
+
+    h_statistic, p_value = stats.kruskal(*clean_groups)
+
+    return {
+        "test_name": "Kruskal-Wallis H-Test",
+        "statistic": float(h_statistic),
+        "p_value": float(p_value),
+        "degrees_of_freedom": float(len(clean_groups) - 1),
+        "effect_size": float(h_statistic),
+        "effect_size_label": "Kruskal-Wallis H",
+        "minimum_expected_frequency": np.nan,
+        "assumptions_met": True,
+    }
+
+
+def spearman_correlation(
+    x_values: pd.Series,
+    y_values: pd.Series,
+) -> dict[str, float | str]:
+    """Calculate Spearman rank correlation and its p-value."""
+    clean_frame = pd.DataFrame({"x": x_values, "y": y_values}).dropna()
+    if len(clean_frame) < 3:
+        raise ValueError("At least three complete observations are required.")
+
+    correlation, p_value = stats.spearmanr(
+        clean_frame["x"].astype(float),
+        clean_frame["y"].astype(float),
+    )
+
+    return {
+        "test_name": "Spearman Rank Correlation",
+        "statistic": float(correlation),
+        "p_value": float(p_value),
+        "degrees_of_freedom": float(len(clean_frame) - 2),
+        "effect_size": float(abs(correlation)),
+        "effect_size_label": "|Spearman rho|",
+        "minimum_expected_frequency": np.nan,
+        "assumptions_met": True,
+    }
+
+
+def interpret_cramers_v(value: float) -> str:
+    """Return a practical interpretation label for Cramér's V."""
+    if value < 0.10:
+        return "Negligible"
+    if value < 0.30:
+        return "Small"
+    if value < 0.50:
+        return "Moderate"
+    return "Strong"
+
+
 def classify_hypothesis_result(
     p_value: float,
     alpha: float,

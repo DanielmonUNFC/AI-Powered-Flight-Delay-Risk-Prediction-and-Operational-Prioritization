@@ -15,6 +15,10 @@ RISK_RECOMMENDATIONS = {
     "CRITICAL": "Immediate Operational Assessment",
 }
 
+STRATEGY_CONSTRAINED_OPTIMIZED = "Constrained Optimized Selection"
+STRATEGY_TOP_K_PROBABILITY = "Top-K Probability Baseline"
+STRATEGY_RANDOM_BASELINE = "Random Baseline"
+
 
 def classify_risk_level(
     delay_probability: float,
@@ -225,6 +229,26 @@ def evaluate_prioritization_scenario(
     }
 
 
+def build_top_k_probability_selection(
+    frame: pd.DataFrame,
+    *,
+    capacity_k: int,
+    probability_column: str = "delay_probability",
+) -> pd.Series:
+    """Select the highest-probability flights without diversification constraints."""
+    if frame.empty:
+        return pd.Series(dtype=bool)
+
+    top_indexes = (
+        frame.sort_values(probability_column, ascending=False)
+        .head(capacity_k)
+        .index
+    )
+    selected_flags = pd.Series(False, index=frame.index, dtype=bool)
+    selected_flags.loc[top_indexes] = True
+    return selected_flags
+
+
 def build_random_selection(
     frame: pd.DataFrame,
     *,
@@ -245,6 +269,55 @@ def build_random_selection(
     return selected_flags
 
 
+def assign_shap_main_drivers(
+    frame: pd.DataFrame,
+    global_importance: pd.DataFrame,
+    *,
+    feature_column: str = "Feature",
+    importance_column: str = "MeanAbsSHAP",
+    airline_column: str = "airline_code",
+    origin_column: str = "origin_airport",
+    destination_column: str = "destination_airport",
+    departure_window_column: str = "departure_window",
+    season_column: str = "season",
+    top_n: int = 15,
+    fallback_feature: str | None = None,
+) -> pd.Series:
+    """Map each flight to the best-matching global SHAP driver for its attributes."""
+    if global_importance.empty:
+        return pd.Series("Unknown", index=frame.index, dtype="object")
+
+    ranked_features = (
+        global_importance.sort_values(importance_column, ascending=False)
+        .head(top_n)[feature_column]
+        .tolist()
+    )
+    default_feature = fallback_feature or ranked_features[0]
+
+    def _resolve_driver(row: pd.Series) -> str:
+        candidate_tokens = [
+            str(row.get(airline_column, "")),
+            str(row.get(origin_column, "")),
+            str(row.get(destination_column, "")),
+            str(row.get(departure_window_column, "")),
+            str(row.get(season_column, "")),
+        ]
+        candidate_tokens = [
+            token.strip()
+            for token in candidate_tokens
+            if token and token.lower() != "nan"
+        ]
+
+        for feature_name in ranked_features:
+            feature_upper = feature_name.upper()
+            for token in candidate_tokens:
+                if token.upper() in feature_upper:
+                    return feature_name
+        return default_feature
+
+    return frame.apply(_resolve_driver, axis=1)
+
+
 def compare_prioritization_strategies(
     pool: pd.DataFrame,
     *,
@@ -261,6 +334,10 @@ def compare_prioritization_strategies(
         airline_column=airline_column,
         origin_column=origin_column,
     )
+    top_k_flags = build_top_k_probability_selection(
+        pool,
+        capacity_k=capacity_k,
+    )
     random_flags = build_random_selection(
         pool,
         capacity_k=capacity_k,
@@ -269,8 +346,9 @@ def compare_prioritization_strategies(
 
     rows = []
     for strategy_name, flags in (
-        ("Prioritized Selection", prioritized_flags),
-        ("Random Baseline", random_flags),
+        (STRATEGY_CONSTRAINED_OPTIMIZED, prioritized_flags),
+        (STRATEGY_TOP_K_PROBABILITY, top_k_flags),
+        (STRATEGY_RANDOM_BASELINE, random_flags),
     ):
         metrics = evaluate_prioritization_scenario(
             pool,
