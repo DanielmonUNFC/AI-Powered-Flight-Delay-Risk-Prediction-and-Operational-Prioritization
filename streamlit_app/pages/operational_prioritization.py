@@ -14,11 +14,9 @@ from components.prioritization_layout_sync import render_prioritization_layout_s
 from components.prioritization_summary_panel import render_prioritization_summary_panel
 from components.table_panel import render_table_panel
 from config.panel_icons import ICON_PRIORITY_RANKING
-from services.prioritization_engine import (
-    build_prioritization_ranking,
-    build_prioritization_summary,
+from services.prioritization_data import (
     format_summary_values,
-    get_prioritization_pool,
+    get_prioritization_page_data,
 )
 
 
@@ -27,7 +25,7 @@ def render_operational_prioritization_page() -> None:
     st.markdown(
         """
         <div class="page-subtitle page-subtitle--prioritization">
-            Prescriptive ranking of high-risk flights for operational review under capacity K
+            Prescriptive selection of high-risk flights for operational review under capacity K
         </div>
         <span class="prioritization-layout-marker"></span>
         """,
@@ -35,15 +33,17 @@ def render_operational_prioritization_page() -> None:
     )
 
     capacity_k = render_prioritization_controls()
-    pool = get_prioritization_pool()
-    ranking = build_prioritization_ranking(pool, capacity_k=capacity_k)
-    selected_count = int(ranking["Selected"].sum()) if not ranking.empty else 0
+    page_data = get_prioritization_page_data(capacity_k=capacity_k)
+    if page_data is None:
+        st.warning(
+            "Prioritization data is unavailable. Verify that the API is running, "
+            "reachable, and that notebook 10 has populated "
+            "flight_prioritization_results."
+        )
+        return
 
-    summary = build_prioritization_summary(
-        capacity_k=capacity_k,
-        selected_count=selected_count,
-        pool=pool,
-    )
+    ranking, summary, table_meta = page_data
+
     render_prioritization_summary_panel(format_summary_values(summary))
 
     st.markdown(
@@ -51,7 +51,7 @@ def render_operational_prioritization_page() -> None:
         unsafe_allow_html=True,
     )
     render_table_panel(
-        "Priority Ranking Table",
+        "Selected Flights for Review",
         ICON_PRIORITY_RANKING,
         build_priority_ranking_table(ranking),
         scrollable=True,
@@ -59,8 +59,9 @@ def render_operational_prioritization_page() -> None:
         header_action="ⓘ",
         extra_css=prioritization_table_styles(),
         footer_text=build_table_footer(
-            total_rows=len(ranking),
-            selected_rows=selected_count,
+            displayed_count=table_meta.displayed_count,
+            selected_count=table_meta.selected_count,
+            queue_size=table_meta.queue_size,
             capacity_k=capacity_k,
         ),
     )

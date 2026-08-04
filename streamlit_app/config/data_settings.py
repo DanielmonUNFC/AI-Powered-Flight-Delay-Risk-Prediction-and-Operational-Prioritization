@@ -6,6 +6,8 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 
+import config.env_loader  # noqa: F401  — loads streamlit_app/.env
+
 
 @dataclass(frozen=True)
 class DataSettings:

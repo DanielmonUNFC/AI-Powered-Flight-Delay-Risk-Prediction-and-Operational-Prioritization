@@ -7,63 +7,118 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from charts.plotly_helpers import apply_transparent_layout
-from styles.theme import CHART_HEIGHT, COLORS
+from styles.theme import COLORS
 
 
-def create_airline_performance_figure(df: pd.DataFrame) -> Optional[go.Figure]:
+def _chart_carrier_name(name: str, code: str) -> str:
+    """Prefer readable airline names on the chart y-axis."""
+    cleaned = str(name).strip()
+    if cleaned and cleaned != code:
+        return cleaned
+    return code
+
+
+def create_airline_performance_figure(
+    df: pd.DataFrame,
+    *,
+    chart_height: int = 280,
+) -> Optional[go.Figure]:
     """Build the airline delay rate comparison bar chart."""
     if df.empty:
         return None
 
     carrier_perf = (
-        df.groupby("Carrier")["DelayProb"]
+        df.groupby(["Carrier", "CarrierName"], as_index=False)["DelayProb"]
         .mean()
-        .reset_index()
         .sort_values(by="DelayProb", ascending=True)
     )
+    carrier_perf["ChartLabel"] = carrier_perf.apply(
+        lambda row: _chart_carrier_name(row["CarrierName"], row["Carrier"]),
+        axis=1,
+    )
     carrier_perf["DelayRate%"] = carrier_perf["DelayProb"] * 100
+    max_label_chars = max(len(label) for label in carrier_perf["ChartLabel"]) if not carrier_perf.empty else 12
+    left_margin = min(340, max(200, max_label_chars * 9 + 56))
+    label_font_size = 15 if max_label_chars <= 18 else 14
+    x_max = max(carrier_perf["DelayRate%"].max() * 1.28, 14)
 
     fig = px.bar(
         carrier_perf,
         x="DelayRate%",
-        y="Carrier",
+        y="ChartLabel",
         orientation="h",
         text=carrier_perf["DelayRate%"].apply(lambda value: f"{value:.1f}%"),
         color="DelayRate%",
         color_continuous_scale=["#00D2FF", "#3B82F6"],
+        custom_data=["Carrier"],
     )
-    fig.update_traces(textposition="outside", marker_line_color="rgba(0,0,0,0)")
+    fig.update_traces(
+        textposition="outside",
+        cliponaxis=False,
+        marker_line_color="rgba(0,0,0,0)",
+        width=0.88,
+        textfont=dict(size=14, color=COLORS["text_primary"]),
+        hovertemplate="%{y}<br>Predicted delay risk: %{x:.1f}%<extra></extra>",
+    )
     fig.update_layout(
         showlegend=False,
         coloraxis_showscale=False,
-        xaxis_title="Delay Rate",
+        bargap=0.03,
+        xaxis_title=None,
         yaxis_title=None,
-        xaxis=dict(showgrid=True, gridcolor=COLORS["grid"], color=COLORS["text_secondary"]),
-        yaxis=dict(showgrid=False, color=COLORS["text_secondary"]),
-        margin=dict(l=10, r=10, t=10, b=10),
-        height=CHART_HEIGHT,
+        xaxis=dict(
+            showgrid=True,
+            gridcolor=COLORS["grid"],
+            color=COLORS["text_secondary"],
+            ticksuffix="%",
+            tickfont=dict(size=13),
+            ticklabelstandoff=12,
+            range=[0, x_max],
+            automargin=True,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            color=COLORS["text_primary"],
+            automargin=False,
+            ticklabelstandoff=32,
+            tickfont=dict(size=label_font_size),
+            categoryorder="total ascending",
+        ),
     )
-    return apply_transparent_layout(fig, height=CHART_HEIGHT, hovermode=False)
+    return apply_transparent_layout(
+        fig,
+        height=chart_height,
+        autosize=True,
+        hovermode="closest",
+        margin={"l": left_margin, "r": 104, "t": 16, "b": 56},
+    )
 
 
 def build_top_delayed_routes_table(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepare the top delayed routes summary table."""
+    """Prepare the top routes table ranked by peak predicted delay risk."""
     if df.empty:
-        return pd.DataFrame(columns=["Route", "Delay %", "Avg Time"])
+        return pd.DataFrame(columns=["Route", "Flights", "Peak Delay Risk"])
+
+    route_source = df.copy()
+    route_source["Route"] = route_source.apply(
+        lambda row: f"{row['Origin']} → {row['Destination']}",
+        axis=1,
+    )
 
     routes = (
-        df.groupby(["Origin", "Destination"])
-        .agg(DelayProb=("DelayProb", "mean"))
-        .reset_index()
-        .sort_values(by="DelayProb", ascending=False)
+        route_source.groupby(["Origin", "Destination", "Route"], as_index=False)
+        .agg(
+            PeakDelayProb=("DelayProb", "max"),
+            Flights=("Flight", "count"),
+        )
+        .sort_values(by="PeakDelayProb", ascending=False)
         .head(5)
     )
-    routes["Route"] = routes["Origin"] + " → " + routes["Destination"]
-    routes["Delay %"] = routes["DelayProb"].apply(
+    routes["Flights"] = routes["Flights"].astype(int).astype(str)
+    routes["Peak Delay Risk"] = routes["PeakDelayProb"].apply(
         lambda value: f'<span class="delay-value">{value * 100:.1f}%</span>'
     )
-    routes["Avg Time"] = "32m"
-    return routes[["Route", "Delay %", "Avg Time"]]
+    return routes[["Route", "Flights", "Peak Delay Risk"]]
 
 
 def build_filtered_flight_log_table(df: pd.DataFrame) -> pd.DataFrame:
@@ -72,57 +127,72 @@ def build_filtered_flight_log_table(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
 
     display_df = df.copy()
-    display_df["Flight"] = display_df["Flight"].apply(
+    display_df["Flight ID"] = display_df["Flight"].apply(
         lambda flight: f'<span class="flight-link">{flight}</span>'
     )
-    display_df["Trend"] = display_df["DelayProb"].apply(_format_trend_sparkline)
-    display_df["DELAYProb%"] = display_df["DelayProb"].apply(
+    display_df["Predicted Delay Risk"] = display_df["DelayProb"].apply(
         lambda value: f'<span class="delay-value">{value * 100:.1f}%</span>'
     )
-    display_df["STATUS"] = display_df["DelayProb"].apply(_format_status_cell)
-    display_df["_row_class"] = display_df["DelayProb"].apply(_format_row_class)
+    display_df["Risk Level"] = display_df["RiskTier"].apply(_format_risk_tier_cell)
+    display_df["Primary Risk Factor"] = display_df["ShapMainDriver"].apply(
+        _format_primary_factor
+    )
+    display_df["_row_class"] = display_df["RiskTier"].apply(_format_row_class)
 
-    columns = [
-        "Flight",
-        "Carrier",
-        "Origin",
-        "Destination",
-        "Trend",
-        "SchedDep",
-        "DELAYProb%",
-        "STATUS",
-        "_row_class",
-    ]
-    return display_df[columns]
+    return display_df[
+        [
+            "Flight ID",
+            "CarrierLabel",
+            "OriginLabel",
+            "DestinationLabel",
+            "DepartureWindow",
+            "SchedDep",
+            "Predicted Delay Risk",
+            "Risk Level",
+            "Primary Risk Factor",
+            "_row_class",
+        ]
+    ].rename(
+        columns={
+            "CarrierLabel": "Airline",
+            "OriginLabel": "Origin<br>Airport",
+            "DestinationLabel": "Destination<br>Airport",
+            "DepartureWindow": "Departure<br>Window",
+            "SchedDep": "Scheduled<br>Departure",
+            "Flight ID": "Flight<br>ID",
+            "Predicted Delay Risk": "Predicted<br>Delay Risk",
+            "Risk Level": "Risk<br>Level",
+            "Primary Risk Factor": "Primary<br>Risk Factor",
+        }
+    )
 
 
-def _format_status_cell(delay_prob: float) -> str:
-    if delay_prob >= 0.8:
+def _format_risk_tier_cell(risk_tier: str) -> str:
+    tier = str(risk_tier).upper()
+    if tier == "CRITICAL":
         return '<span class="status-critical">CRITICAL</span>'
-    if delay_prob >= 0.5:
+    if tier == "HIGH":
         return '<span class="status-high">HIGH</span>'
+    if tier == "MEDIUM":
+        return '<span class="status-high">MEDIUM</span>'
     return '<span class="status-low">LOW</span>'
 
 
-def _format_row_class(delay_prob: float) -> str:
-    if delay_prob >= 0.8:
+def _format_row_class(risk_tier: str) -> str:
+    tier = str(risk_tier).upper()
+    if tier == "CRITICAL":
         return "row-critical"
-    if delay_prob >= 0.5:
+    if tier in {"HIGH", "MEDIUM"}:
         return "row-high"
     return ""
 
 
-def _format_trend_sparkline(delay_prob: float) -> str:
-    """Render a compact inline sparkline for the flight trend column."""
-    seed = int(delay_prob * 100)
-    heights = [8 + ((seed + index * 7) % 12) for index in range(5)]
-    bars = "".join(
-        f'<rect x="{index * 6 + 1}" y="{22 - height}" width="4" height="{height}" '
-        f'rx="1" fill="#3b82f6" opacity="{0.45 + (height / 30):.2f}"/>'
-        for index, height in enumerate(heights)
-    )
-    return (
-        '<svg width="34" height="24" viewBox="0 0 34 24" '
-        'xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trend">'
-        f"{bars}</svg>"
-    )
+def _format_primary_factor(value: str) -> str:
+    """Present the simplified SHAP driver label in readable form."""
+    text = str(value).strip()
+    if not text or text.lower() == "nan":
+        return "—"
+    text = text.replace("SEASON ", "Season · ").replace("_", " ")
+    if len(text) > 28:
+        return f"{text[:25]}..."
+    return text

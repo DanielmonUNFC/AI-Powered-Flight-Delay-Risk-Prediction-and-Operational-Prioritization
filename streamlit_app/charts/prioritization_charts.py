@@ -8,7 +8,7 @@ from styles.theme import COLORS
 
 
 def build_priority_ranking_table(ranking_df: pd.DataFrame) -> pd.DataFrame:
-    """Prepare the priority ranking table with badge styling helpers."""
+    """Prepare the selected-flights table with badge styling helpers."""
     if ranking_df.empty:
         return pd.DataFrame()
 
@@ -19,28 +19,34 @@ def build_priority_ranking_table(ranking_df: pd.DataFrame) -> pd.DataFrame:
     display_df["SHAP Main Driver"] = display_df["ShapMainDriver"].apply(_format_shap_cell)
     display_df["Selection Status"] = display_df["Selected"].apply(_format_selection_cell)
     display_df["_row_class"] = display_df.apply(_format_row_class, axis=1)
+    display_df = display_df.rename(columns={"FlightDate": "Flight Date"})
 
-    columns = [
-        "Priority",
-        "Flight",
-        "Airline",
-        "Origin",
-        "Destination",
-        "SchedDep",
-        "Delay Probability",
-        "PriorityScore",
-        "Risk Category",
-        "Recommendation",
-        "SHAP Main Driver",
-        "Selection Status",
-        "_row_class",
+    return display_df[
+        [
+            "Priority",
+            "Flight Date",
+            "Flight",
+            "Airline",
+            "Origin",
+            "Destination",
+            "SchedDep",
+            "Delay Probability",
+            "PriorityScore",
+            "Risk Category",
+            "Recommendation",
+            "SHAP Main Driver",
+            "Selection Status",
+            "_row_class",
+        ]
     ]
-    return display_df[columns]
 
 
 def prioritization_table_styles() -> str:
     """Return supplemental CSS for prioritization table badges and cells."""
     return f"""
+        .surface-table tbody td {{
+            padding: 12px 12px;
+        }}
         .priority-badge {{
             display: inline-flex;
             align-items: center;
@@ -81,12 +87,18 @@ def prioritization_table_styles() -> str:
             color: {COLORS["accent_bright"]};
         }}
         .recommendation-cell {{
-            color: {COLORS["text_secondary"]};
-            font-weight: 500;
+            color: {COLORS["text_primary"]};
+            font-weight: 600;
+            min-width: 240px;
+            max-width: 320px;
+            white-space: normal;
+            line-height: 1.45;
+            display: inline-block;
         }}
         .shap-driver-cell {{
             color: {COLORS["accent_bright"]};
             font-weight: 600;
+            white-space: nowrap;
         }}
         .selection-badge {{
             display: inline-flex;
@@ -118,11 +130,23 @@ def prioritization_table_styles() -> str:
     """
 
 
-def build_table_footer(total_rows: int, selected_rows: int, capacity_k: int) -> str:
-    """Build a contextual footer for the prioritization ranking table."""
+def build_table_footer(
+    displayed_count: int,
+    selected_count: int,
+    queue_size: int,
+    capacity_k: int,
+) -> str:
+    """Build a contextual footer for the selected-flights table."""
+    if displayed_count >= selected_count:
+        visible_text = f"Showing all {selected_count:,} selected flights"
+    else:
+        visible_text = (
+            f"Showing {displayed_count:,} of {selected_count:,} selected flights"
+        )
+
     return (
-        f"Showing {total_rows} ranked flights · "
-        f"{selected_rows} selected of K={capacity_k} operational capacity"
+        f"{visible_text} for K={capacity_k} · "
+        f"ranked from {queue_size:,} high-risk flights in queue"
     )
 
 
