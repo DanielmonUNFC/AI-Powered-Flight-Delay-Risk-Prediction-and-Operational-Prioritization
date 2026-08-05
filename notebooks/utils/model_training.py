@@ -56,7 +56,7 @@ def create_feature_hasher_from_manifest(
         raise ValueError(
             "Feature manifest references intermediate hist columns that must not "
             f"be model inputs: {stale_columns}. Re-run notebook 07 after syncing "
-            "config/project_config.py and utils/model_training.py."
+            "notebooks/config/project_config.py and notebooks/utils/model_training.py."
         )
 
     return FeatureHasher(
@@ -76,8 +76,8 @@ def validate_feature_hasher(feature_hasher: FeatureHasher) -> None:
     if stale_columns:
         raise ValueError(
             "FeatureHasher references intermediate hist columns that must not "
-            f"be model inputs: {stale_columns}. Sync config/project_config.py "
-            "and utils/model_training.py, then restart the notebook kernel."
+            f"be model inputs: {stale_columns}. Sync notebooks/config/project_config.py "
+            "and notebooks/utils/model_training.py, then restart the notebook kernel."
         )
 
     if input_columns != list(cfg.MODEL_INPUT_COLUMNS):

@@ -150,33 +150,6 @@ def get_explorer_data():
     return pd.DataFrame(rows)
 
 
-def get_prioritization_summary() -> dict[str, str]:
-    """Backward-compatible summary accessor for prioritization prototypes."""
-    from services.prioritization_engine import (
-        build_prioritization_summary,
-        format_summary_values,
-        get_prioritization_pool,
-        optimize_flight_selection,
-    )
-    from config.prioritization import DEFAULT_CAPACITY_K
-
-    pool = get_prioritization_pool()
-    selected_count = int(optimize_flight_selection(pool, capacity_k=DEFAULT_CAPACITY_K).sum())
-    summary = build_prioritization_summary(
-        capacity_k=DEFAULT_CAPACITY_K,
-        selected_count=selected_count,
-    )
-    return format_summary_values(summary)
-
-
-def get_prioritization_ranking() -> pd.DataFrame:
-    """Backward-compatible ranking accessor for prioritization prototypes."""
-    from services.prioritization_engine import build_prioritization_ranking
-    from config.prioritization import DEFAULT_CAPACITY_K
-
-    return build_prioritization_ranking(capacity_k=DEFAULT_CAPACITY_K)
-
-
 def get_mock_prediction(
     *,
     airline: str,

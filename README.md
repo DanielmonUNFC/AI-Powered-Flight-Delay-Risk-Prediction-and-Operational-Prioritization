@@ -46,10 +46,10 @@ The objective of this project is to develop an AI-powered decision support syste
 
 ```
 api/                    # FastAPI service (Databricks SQL backend)
-config/                 # Shared Databricks pipeline configuration
 notebooks/              # Databricks notebook pipeline (00–11)
+  config/               # Pipeline table/column configuration
+  utils/                # Reusable Python helpers for notebooks
 streamlit_app/          # Interactive executive dashboard
-utils/                  # Reusable Python helpers for notebooks
 requirements.txt        # Root Python dependencies
 ```
 

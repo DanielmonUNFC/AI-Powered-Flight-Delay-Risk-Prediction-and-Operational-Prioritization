@@ -81,6 +81,7 @@ def render_html_panel(
     fill_height: bool = False,
     header_action: str = "",
     extra_css: str = "",
+    inline_script: str = "",
 ) -> None:
     """Render a titled panel with optional scrollable body and footer."""
     header_html = panel_header_html(title, icon_id, header_action=header_action)
@@ -139,6 +140,8 @@ def render_html_panel(
         </script>
         """
 
+    inline_script_block = f"\n{inline_script}" if inline_script else ""
+
     components.html(
         f"""<!DOCTYPE html>
 <html lang="en">
@@ -154,7 +157,7 @@ def render_html_panel(
         {header_html}
         {body_block}
     </div>
-    {fill_height_script}
+    {fill_height_script}{inline_script_block}
 </body>
 </html>""",
         height=height,

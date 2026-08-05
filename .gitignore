@@ -219,3 +219,6 @@ __marimo__/
 
 # API configuration file
 api/.env
+
+# Streamlit configuration file
+streamlit_app/.env

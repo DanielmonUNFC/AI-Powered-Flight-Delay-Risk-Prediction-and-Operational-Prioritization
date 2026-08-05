@@ -26,12 +26,22 @@ def create_monthly_trend_figure(df: pd.DataFrame) -> go.Figure:
         showlegend=False,
         xaxis_title=None,
         yaxis_title=None,
-        xaxis=dict(showgrid=False, color=COLORS["text_secondary"]),
+        xaxis=dict(
+            showgrid=False,
+            color=COLORS["text_secondary"],
+            automargin=True,
+            tickfont=dict(size=12),
+            tickmode="array",
+            tickvals=list(df["Month"]),
+            ticktext=list(df["Month"]),
+        ),
         yaxis=dict(
             showgrid=True,
             gridcolor=COLORS["grid"],
             color=COLORS["text_secondary"],
             ticksuffix="%",
+            automargin=True,
+            tickfont=dict(size=12),
         ),
     )
     fig.add_annotation(
@@ -50,7 +60,12 @@ def create_monthly_trend_figure(df: pd.DataFrame) -> go.Figure:
         yshift=18,
         font=dict(size=11, color=COLORS["text_muted"]),
     )
-    return apply_transparent_layout(fig)
+    return apply_transparent_layout(
+        fig,
+        height=340,
+        autosize=True,
+        margin={"l": 56, "r": 40, "t": 28, "b": 56},
+    )
 
 
 def create_delay_causes_figure(df: pd.DataFrame) -> go.Figure:
