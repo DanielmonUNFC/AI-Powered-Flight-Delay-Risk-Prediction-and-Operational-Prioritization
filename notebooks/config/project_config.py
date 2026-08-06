@@ -488,10 +488,17 @@ MODEL_NUMERICAL_COLUMNS = [
 
 MODEL_INPUT_COLUMNS = MODEL_CATEGORICAL_COLUMNS + MODEL_NUMERICAL_COLUMNS
 
+# SCHEDULED_DEPARTURE_COLUMN is carried through as a passthrough join/
+# reporting key (see MODELING_JOIN_KEY_COLUMNS and MODEL_HASHED_OUTPUT_COLUMNS
+# above, and its use in notebook 10 for display formatting), not as a model
+# input -- it stays out of MODEL_INPUT_COLUMNS for the reason explained above,
+# but must still survive the hist-table selection or the later
+# .select(*MODEL_HASHED_OUTPUT_COLUMNS) call fails to resolve it.
 MODEL_HIST_TABLE_COLUMNS = [
     *MODEL_INPUT_COLUMNS,
     FLIGHT_DATE_COLUMN,
     FLIGHT_NUMBER_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
     TARGET_COLUMN,
 ]
 
