@@ -212,6 +212,48 @@ def interpret_cramers_v(value: float) -> str:
     return "Strong"
 
 
+def interpret_effect_size(effect_size_label: str, value: float) -> str:
+    """Return a practical-significance label appropriate to the effect-size metric.
+
+    Reporting statistical significance alone can be misleading on very large
+    samples, where even negligible effects become "significant". Each metric
+    uses its own conventional (Cohen, 1988) small/medium/large thresholds.
+    """
+    magnitude = abs(value)
+
+    if effect_size_label == "Cramer's V":
+        return interpret_cramers_v(magnitude)
+
+    if effect_size_label in ("|Pearson r|", "|Spearman rho|"):
+        if magnitude < 0.10:
+            return "Negligible"
+        if magnitude < 0.30:
+            return "Small"
+        if magnitude < 0.50:
+            return "Moderate"
+        return "Strong"
+
+    if effect_size_label == "|Cohen's d|":
+        if magnitude < 0.20:
+            return "Negligible"
+        if magnitude < 0.50:
+            return "Small"
+        if magnitude < 0.80:
+            return "Moderate"
+        return "Strong"
+
+    if effect_size_label == "Eta-squared":
+        if magnitude < 0.01:
+            return "Negligible"
+        if magnitude < 0.06:
+            return "Small"
+        if magnitude < 0.14:
+            return "Moderate"
+        return "Strong"
+
+    return "Not standardized"
+
+
 def classify_hypothesis_result(
     p_value: float,
     alpha: float,
@@ -234,6 +276,8 @@ def build_test_result_row(
 ) -> dict[str, object]:
     """Convert a test output dictionary into a report row."""
     p_value = float(test_output["p_value"])
+    effect_size = float(test_output["effect_size"])
+    effect_size_label = test_output["effect_size_label"]
     return {
         "research_question": research_question,
         "hypothesis_id": hypothesis_id,
@@ -243,8 +287,11 @@ def build_test_result_row(
         "test_name": test_output["test_name"],
         "statistic": round(float(test_output["statistic"]), 6),
         "p_value": round(p_value, 6),
-        "effect_size": round(float(test_output["effect_size"]), 6),
-        "effect_size_label": test_output["effect_size_label"],
+        "effect_size": round(effect_size, 6),
+        "effect_size_label": effect_size_label,
+        "effect_size_interpretation": interpret_effect_size(
+            effect_size_label, effect_size
+        ),
         "alpha": alpha,
         "decision": classify_hypothesis_result(p_value, alpha),
         "assumptions_met": bool(test_output["assumptions_met"]),
