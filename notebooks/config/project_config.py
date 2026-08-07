@@ -519,6 +519,8 @@ VALIDATION_END_DATE = "2025-10-31"
 TEST_START_DATE = "2025-11-01"
 
 HISTORICAL_SMOOTHING_STRENGTH = 100.0
+# Symmetric Bernoulli prior used only when no earlier training date exists.
+HISTORICAL_INITIAL_PRIOR_RATE = 0.5
 
 
 # ============================================================
