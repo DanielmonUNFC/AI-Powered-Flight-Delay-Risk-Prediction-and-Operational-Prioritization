@@ -1,3 +1,5 @@
+import config.env_loader  # noqa: F401  — loads streamlit_app/.env before other imports
+
 import streamlit as st
 
 # 1. Page Configuration

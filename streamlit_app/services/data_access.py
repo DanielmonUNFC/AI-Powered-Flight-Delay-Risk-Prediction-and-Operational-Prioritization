@@ -91,31 +91,6 @@ def load_global_feature_importance() -> pd.DataFrame:
     return query_dataframe(query)
 
 
-def load_prioritization_results(capacity_k: int) -> pd.DataFrame:
-    """Load ranked prioritization results for a given capacity K."""
-    settings = get_data_settings()
-    table_name = settings.table_name(settings.prioritization_results_table)
-    query = f"""
-        SELECT *
-        FROM {table_name}
-        WHERE capacity_k = {int(capacity_k)}
-        ORDER BY priority_rank
-    """
-    return query_dataframe(query)
-
-
-def load_prioritization_evaluation(capacity_k: int) -> pd.DataFrame:
-    """Load RQ4 evaluation metrics for a given capacity K."""
-    settings = get_data_settings()
-    table_name = settings.table_name(settings.prioritization_evaluation_table)
-    query = f"""
-        SELECT *
-        FROM {table_name}
-        WHERE capacity_k = {int(capacity_k)}
-    """
-    return query_dataframe(query)
-
-
 def load_local_prediction_explanation() -> dict[str, object]:
     """Build a local explanation payload from signed SHAP effects."""
     settings = get_data_settings()

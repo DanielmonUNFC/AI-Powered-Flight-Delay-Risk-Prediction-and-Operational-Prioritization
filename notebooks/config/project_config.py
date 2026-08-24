@@ -63,6 +63,7 @@ YES_NO_REFERENCE_FILE = (
 RAW_TABLE = f"{CATALOG}.{SCHEMA}.flights_raw"
 CLEAN_TABLE = f"{CATALOG}.{SCHEMA}.flights_clean"
 FEATURES_TABLE = f"{CATALOG}.{SCHEMA}.flights_features"
+FEATURES_V2_TABLE = f"{CATALOG}.{SCHEMA}.flights_features_v2"
 PREDICTIONS_TABLE = f"{CATALOG}.{SCHEMA}.flight_predictions"
 DASHBOARD_TABLE = f"{CATALOG}.{SCHEMA}.flight_dashboard"
 AIRLINES_LOOKUP_TABLE = f"{CATALOG}.{SCHEMA}.airlines_lookup"
@@ -207,10 +208,27 @@ DELAY_THRESHOLD_MINUTES = 15
 
 DEP_HOUR_COLUMN = "DEP_HOUR"
 DEP_MINUTE_COLUMN = "DEP_MINUTE"
+ARR_HOUR_COLUMN = "ARR_HOUR"
+ARR_MINUTE_COLUMN = "ARR_MINUTE"
 IS_WEEKEND_COLUMN = "IS_WEEKEND"
 SEASON_COLUMN = "SEASON"
 TIME_OF_DAY_COLUMN = "TIME_OF_DAY"
 FLIGHT_DISTANCE_CATEGORY_COLUMN = "FLIGHT_DISTANCE_CATEGORY"
+ROUTE_COLUMN = "ROUTE"
+DEP_TIME_SIN_COLUMN = "DEP_TIME_SIN"
+DEP_TIME_COS_COLUMN = "DEP_TIME_COS"
+ARR_TIME_SIN_COLUMN = "ARR_TIME_SIN"
+ARR_TIME_COS_COLUMN = "ARR_TIME_COS"
+MONTH_SIN_COLUMN = "MONTH_SIN"
+MONTH_COS_COLUMN = "MONTH_COS"
+DAY_OF_WEEK_SIN_COLUMN = "DAY_OF_WEEK_SIN"
+DAY_OF_WEEK_COS_COLUMN = "DAY_OF_WEEK_COS"
+ORIGIN_SCHEDULED_DEPARTURES_HOUR_COLUMN = (
+    "ORIGIN_SCHEDULED_DEPARTURES_HOUR"
+)
+DEST_SCHEDULED_ARRIVALS_HOUR_COLUMN = "DEST_SCHEDULED_ARRIVALS_HOUR"
+ROUTE_DAILY_FLIGHT_COUNT_COLUMN = "ROUTE_DAILY_FLIGHT_COUNT"
+SCHEDULED_SPEED_MPH_COLUMN = "SCHEDULED_SPEED_MPH"
 
 
 # ============================================================
@@ -407,10 +425,36 @@ MODEL_FEATURE_COLUMNS = [
     SCHEDULED_ELAPSED_TIME_COLUMN,
     DEP_HOUR_COLUMN,
     DEP_MINUTE_COLUMN,
+    ARR_HOUR_COLUMN,
+    ARR_MINUTE_COLUMN,
     IS_WEEKEND_COLUMN,
     SEASON_COLUMN,
     TIME_OF_DAY_COLUMN,
     FLIGHT_DISTANCE_CATEGORY_COLUMN,
+    TARGET_COLUMN,
+]
+
+# Version 2 preserves every V1 feature and adds only information derivable
+# from the published schedule. No observed operational outcome is introduced.
+MODEL_V2_ENGINEERED_FEATURE_COLUMNS = [
+    ROUTE_COLUMN,
+    DEP_TIME_SIN_COLUMN,
+    DEP_TIME_COS_COLUMN,
+    ARR_TIME_SIN_COLUMN,
+    ARR_TIME_COS_COLUMN,
+    MONTH_SIN_COLUMN,
+    MONTH_COS_COLUMN,
+    DAY_OF_WEEK_SIN_COLUMN,
+    DAY_OF_WEEK_COS_COLUMN,
+    ORIGIN_SCHEDULED_DEPARTURES_HOUR_COLUMN,
+    DEST_SCHEDULED_ARRIVALS_HOUR_COLUMN,
+    ROUTE_DAILY_FLIGHT_COUNT_COLUMN,
+    SCHEDULED_SPEED_MPH_COLUMN,
+]
+
+MODEL_FEATURE_COLUMNS_V2 = [
+    *[column for column in MODEL_FEATURE_COLUMNS if column != TARGET_COLUMN],
+    *MODEL_V2_ENGINEERED_FEATURE_COLUMNS,
     TARGET_COLUMN,
 ]
 
@@ -423,6 +467,24 @@ MODEL_HISTORICAL_RATE_COLUMNS = [
     "ORIGIN_HIST_DELAY_RATE",
     "DEST_HIST_DELAY_RATE",
     "ROUTE_HIST_DELAY_RATE",
+]
+
+MODEL_INTERACTION_HISTORICAL_RATE_COLUMNS = [
+    "AIRLINE_ORIGIN_HIST_DELAY_RATE",
+    "AIRLINE_DEST_HIST_DELAY_RATE",
+]
+
+HISTORICAL_RECENT_WINDOW_DAYS = (7, 30)
+MODEL_RECENT_HISTORICAL_RATE_COLUMNS = [
+    f"{entity}_{window_days}D_HIST_DELAY_RATE"
+    for entity in ("AIRLINE", "ORIGIN", "DEST", "ROUTE")
+    for window_days in HISTORICAL_RECENT_WINDOW_DAYS
+]
+
+MODEL_HISTORICAL_RATE_COLUMNS_V2 = [
+    *MODEL_HISTORICAL_RATE_COLUMNS,
+    *MODEL_INTERACTION_HISTORICAL_RATE_COLUMNS,
+    *MODEL_RECENT_HISTORICAL_RATE_COLUMNS,
 ]
 
 # Intermediate leakage-safe building blocks. Never used as model inputs.
@@ -463,21 +525,38 @@ MODEL_NUMERICAL_COLUMNS = [
     MONTH_COLUMN,
     DAY_OF_WEEK_COLUMN,
     DISTANCE_COLUMN,
-    SCHEDULED_DEPARTURE_COLUMN,
-    SCHEDULED_ARRIVAL_COLUMN,
     SCHEDULED_ELAPSED_TIME_COLUMN,
     DEP_HOUR_COLUMN,
     DEP_MINUTE_COLUMN,
+    ARR_HOUR_COLUMN,
+    ARR_MINUTE_COLUMN,
     IS_WEEKEND_COLUMN,
     *MODEL_HISTORICAL_RATE_COLUMNS,
 ]
 
+# Raw HHMM schedule-time columns (SCHEDULED_DEPARTURE_COLUMN,
+# SCHEDULED_ARRIVAL_COLUMN) are intentionally excluded from
+# MODEL_NUMERICAL_COLUMNS: their format is not an ordinary continuous
+# integer (e.g. 2359 -> 1 at midnight is a 2-minute gap encoded as a
+# ~2358-unit jump), so they must not be fed to the model as raw numeric
+# values. ARR_HOUR_COLUMN / ARR_MINUTE_COLUMN (decomposed, like
+# DEP_HOUR_COLUMN / DEP_MINUTE_COLUMN) carry the same information safely.
+# The raw columns remain in MODEL_FEATURE_COLUMNS for display/reporting
+# use in notebooks 10/11, just not as model inputs here.
+
 MODEL_INPUT_COLUMNS = MODEL_CATEGORICAL_COLUMNS + MODEL_NUMERICAL_COLUMNS
 
+# SCHEDULED_DEPARTURE_COLUMN is carried through as a passthrough join/
+# reporting key (see MODELING_JOIN_KEY_COLUMNS and MODEL_HASHED_OUTPUT_COLUMNS
+# above, and its use in notebook 10 for display formatting), not as a model
+# input -- it stays out of MODEL_INPUT_COLUMNS for the reason explained above,
+# but must still survive the hist-table selection or the later
+# .select(*MODEL_HASHED_OUTPUT_COLUMNS) call fails to resolve it.
 MODEL_HIST_TABLE_COLUMNS = [
     *MODEL_INPUT_COLUMNS,
     FLIGHT_DATE_COLUMN,
     FLIGHT_NUMBER_COLUMN,
+    SCHEDULED_DEPARTURE_COLUMN,
     TARGET_COLUMN,
 ]
 
@@ -498,6 +577,8 @@ VALIDATION_END_DATE = "2025-10-31"
 TEST_START_DATE = "2025-11-01"
 
 HISTORICAL_SMOOTHING_STRENGTH = 100.0
+# Symmetric Bernoulli prior used only when no earlier training date exists.
+HISTORICAL_INITIAL_PRIOR_RATE = 0.5
 
 
 # ============================================================
@@ -556,9 +637,23 @@ LEAKAGE_COLUMNS = [
 
 TUNING_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_tree_tuning"
 MODELS_PATH = f"{VOLUME_PATH}/models"
-SELECTED_MODEL_PATH = f"{MODELS_PATH}/logistic_regression_final"
+SELECTED_MODEL_PATH = f"{MODELS_PATH}/xgboost_final"
+SELECTED_MODEL_BUNDLE_PATH = f"{SELECTED_MODEL_PATH}/model_bundle.joblib"
 SELECTED_MODEL_METADATA_PATH = f"{SELECTED_MODEL_PATH}/model_metadata.json"
 SELECTED_MODEL_METRICS_PATH = f"{SELECTED_MODEL_PATH}/model_metrics.json"
+FINAL_MODEL_EVALUATION_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_final_model_evaluation"
+)
+FINAL_MODEL_THRESHOLD_COMPARISON_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_final_threshold_comparison"
+)
+FINAL_MODEL_CALIBRATION_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_final_calibration"
+)
+FINAL_MODEL_LIFT_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_final_lift"
+FINAL_MODEL_SUBGROUP_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_final_subgroup_evaluation"
+)
 
 HASH_VECTOR_SIZE = 2**12
 
@@ -572,36 +667,44 @@ FINAL_TRAINING_SAMPLE_FRACTIONS = TREE_TUNING_SAMPLE_FRACTIONS
 TUNING_FOLDS = [
     {
         "fold": "Fold 1",
+        "train_start": "2025-01-01",
+        "train_end": "2025-03-31",
+        "validation_start": "2025-04-01",
+        "validation_end": "2025-04-30",
+    },
+    {
+        "fold": "Fold 2",
+        "train_start": "2025-01-01",
         "train_end": "2025-04-30",
         "validation_start": "2025-05-01",
         "validation_end": "2025-05-31",
     },
     {
-        "fold": "Fold 2",
+        "fold": "Fold 3",
+        "train_start": "2025-01-01",
         "train_end": "2025-05-31",
         "validation_start": "2025-06-01",
         "validation_end": "2025-06-30",
     },
     {
-        "fold": "Fold 3",
+        "fold": "Fold 4",
+        "train_start": "2025-01-01",
         "train_end": "2025-06-30",
         "validation_start": "2025-07-01",
         "validation_end": "2025-07-31",
     },
     {
-        "fold": "Fold 4",
+        "fold": "Fold 5",
+        "train_start": "2025-01-01",
         "train_end": "2025-07-31",
         "validation_start": "2025-08-01",
         "validation_end": "2025-08-31",
     },
 ]
 
-SELECTED_MODEL_NAME = "Logistic Regression"
-SELECTED_LR_PARAMS = {
-    "regParam": 0.001,
-    "elasticNetParam": 0.0,
-}
-SELECTED_LR_MAX_ITER = 20
+# The executable source of truth remains candidate_model_selection.json.
+# This constant mirrors the currently approved V1 candidate for summaries.
+SELECTED_MODEL_NAME = "XGBoost"
 
 MODELING_TRAIN_HASHED_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_train_hashed"
 MODELING_VALIDATION_HASHED_TABLE = (
@@ -614,8 +717,124 @@ MODELING_VALIDATION_HIST_TABLE = (
 )
 MODELING_TEST_HIST_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_test_hist"
 TUNED_MODEL_COMPARISON_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison"
+BASELINE_MODEL_COMPARISON_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_baseline_model_comparison"
+)
+FINALIST_MODEL_COMPARISON_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_finalist_model_comparison"
+)
 CANDIDATE_SELECTION_PATH = f"{MODELS_PATH}/candidate_model_selection.json"
 MODEL_FEATURE_MANIFEST_PATH = f"{MODELS_PATH}/model_feature_manifest.json"
+TUNED_MODEL_COMPARISON_V2_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison_v2"
+)
+BASELINE_MODEL_COMPARISON_V2_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_baseline_model_comparison_v2"
+)
+FINALIST_MODEL_COMPARISON_V2_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_finalist_model_comparison_v2"
+)
+MODEL_VERSION_COMPARISON_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_model_version_comparison"
+)
+CANDIDATE_SELECTION_V2_PATH = (
+    f"{MODELS_PATH}/candidate_model_selection_v2.json"
+)
+MODEL_FEATURE_MANIFEST_V2_PATH = f"{MODELS_PATH}/model_feature_manifest_v2.json"
+TUNED_MODEL_COMPARISON_V3_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison_v3"
+)
+BASELINE_MODEL_COMPARISON_V3_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_baseline_model_comparison_v3"
+)
+FINALIST_MODEL_COMPARISON_V3_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_finalist_model_comparison_v3"
+)
+MODEL_VERSION_COMPARISON_V3_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_model_version_comparison_v3"
+)
+CANDIDATE_SELECTION_V3_PATH = (
+    f"{MODELS_PATH}/candidate_model_selection_v3.json"
+)
+MODEL_FEATURE_MANIFEST_V3_PATH = f"{MODELS_PATH}/model_feature_manifest_v3.json"
+
+# Standard-Python model inputs. City/state fields and QUARTER are omitted
+# because they duplicate information already represented by airport and MONTH.
+PYTHON_MODEL_CATEGORICAL_COLUMNS = [
+    AIRLINE_COLUMN,
+    ORIGIN_COLUMN,
+    DESTINATION_COLUMN,
+    SEASON_COLUMN,
+    TIME_OF_DAY_COLUMN,
+    FLIGHT_DISTANCE_CATEGORY_COLUMN,
+]
+PYTHON_MODEL_NUMERICAL_COLUMNS = [
+    MONTH_COLUMN,
+    DAY_OF_WEEK_COLUMN,
+    DISTANCE_COLUMN,
+    SCHEDULED_ELAPSED_TIME_COLUMN,
+    DEP_HOUR_COLUMN,
+    DEP_MINUTE_COLUMN,
+    ARR_HOUR_COLUMN,
+    ARR_MINUTE_COLUMN,
+    IS_WEEKEND_COLUMN,
+    *MODEL_HISTORICAL_RATE_COLUMNS,
+]
+PYTHON_MODEL_INPUT_COLUMNS = (
+    PYTHON_MODEL_CATEGORICAL_COLUMNS + PYTHON_MODEL_NUMERICAL_COLUMNS
+)
+
+PYTHON_MODEL_CATEGORICAL_COLUMNS_V2 = [
+    *PYTHON_MODEL_CATEGORICAL_COLUMNS,
+    ROUTE_COLUMN,
+]
+PYTHON_MODEL_NUMERICAL_COLUMNS_V2 = [
+    *[
+        column
+        for column in PYTHON_MODEL_NUMERICAL_COLUMNS
+        if column not in MODEL_HISTORICAL_RATE_COLUMNS
+    ],
+    DEP_TIME_SIN_COLUMN,
+    DEP_TIME_COS_COLUMN,
+    ARR_TIME_SIN_COLUMN,
+    ARR_TIME_COS_COLUMN,
+    MONTH_SIN_COLUMN,
+    MONTH_COS_COLUMN,
+    DAY_OF_WEEK_SIN_COLUMN,
+    DAY_OF_WEEK_COS_COLUMN,
+    ORIGIN_SCHEDULED_DEPARTURES_HOUR_COLUMN,
+    DEST_SCHEDULED_ARRIVALS_HOUR_COLUMN,
+    ROUTE_DAILY_FLIGHT_COUNT_COLUMN,
+    SCHEDULED_SPEED_MPH_COLUMN,
+    *MODEL_HISTORICAL_RATE_COLUMNS_V2,
+]
+PYTHON_MODEL_INPUT_COLUMNS_V2 = (
+    PYTHON_MODEL_CATEGORICAL_COLUMNS_V2 + PYTHON_MODEL_NUMERICAL_COLUMNS_V2
+)
+
+# Runtime-aware deep tuning. Sampling is uniform within each chronological
+# period, so the natural on-time/delayed distribution is preserved.
+TUNING_MAX_TRAIN_ROWS = 80000
+TUNING_MAX_VALIDATION_ROWS = 30000
+CONFIRMATION_MAX_TRAIN_ROWS = 500000
+CONFIRMATION_MAX_VALIDATION_ROWS = 250000
+FINAL_MODEL_MAX_TRAIN_ROWS = 1000000
+FINAL_HOLDOUT_MAX_ROWS = 500000
+LOGISTIC_BROAD_SEARCH_SIZE = 16
+LOGISTIC_REFINEMENT_SIZE = 4
+RANDOM_FOREST_BROAD_SEARCH_SIZE = 20
+RANDOM_FOREST_REFINEMENT_SIZE = 6
+XGBOOST_BROAD_SEARCH_SIZE = 28
+XGBOOST_REFINEMENT_SIZE = 8
+
+# Each candidate receives a validation threshold selected by the same rule:
+# maximize delayed-flight F1 while achieving at least 60% delayed recall.
+MODEL_SELECTION_MIN_DELAY_RECALL = 0.60
+MODEL_SELECTION_PR_AUC_TOLERANCE = 0.01
+MODEL_SELECTION_MAX_PR_AUC_STD = 0.05
+MODEL_SELECTION_THRESHOLD_MIN = 0.05
+MODEL_SELECTION_THRESHOLD_MAX = 0.75
+MODEL_SELECTION_THRESHOLD_STEP = 0.01
 
 SHAP_SAMPLE_SIZE = 20000
 SHAP_VALUES_SAMPLE_ROWS = 1000
@@ -647,6 +866,7 @@ SUBGROUP_ERROR_COLUMNS = [
 ]
 
 MODEL_TRAINING_REQUIRED_COLUMNS = set(MODEL_FEATURE_COLUMNS)
+MODEL_TRAINING_REQUIRED_COLUMNS_V2 = set(MODEL_FEATURE_COLUMNS_V2)
 
 
 # ============================================================

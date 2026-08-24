@@ -2,15 +2,19 @@
    Tune spacing via --explorer-main-margin-top (right column offset). */
 
 :root {
-    --explorer-compact-height: 290px;
+    --explorer-compact-height: 420px;
     --explorer-section-gap: 10px;
     --explorer-main-margin-top: 0px;
+    --explorer-flight-log-min-height: 320px;
     --explorer-chrome-height: calc(
         0.75rem + 3.75rem + 3rem + 2.25rem + 1.35rem + var(--tab-content-offset)
     );
     --explorer-shell-height: calc(100vh - var(--explorer-chrome-height));
-    --explorer-flight-log-height: calc(
-        var(--explorer-shell-height) - var(--explorer-compact-height) - var(--explorer-section-gap)
+    --explorer-flight-log-height: max(
+        var(--explorer-flight-log-min-height),
+        calc(
+            var(--explorer-shell-height) - var(--explorer-compact-height) - var(--explorer-section-gap)
+        )
     );
 }
 
@@ -69,15 +73,32 @@
     background-color: var(--surface-elevated) !important;
     border: 1px solid var(--border-subtle) !important;
     border-radius: 8px !important;
-    padding: 16px 20px !important;
+    padding: 8px 10px !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     box-sizing: border-box !important;
     align-self: stretch !important;
     height: 100% !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) .surface-panel-card__header {
+    font-size: 0.6875rem !important;
+    margin-bottom: 4px !important;
+    letter-spacing: 0.03em !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) .panel-icon,
+[data-testid="column"]:has(.explorer-filter-panel-marker) .panel-icon svg {
+    width: 13px !important;
+    height: 13px !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) [data-testid="element-container"] {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 [data-testid="column"]:has(.explorer-filter-panel-marker) > div {
@@ -89,33 +110,39 @@
 }
 
 [data-testid="column"]:has(.explorer-filter-panel-marker) > div > [data-testid="stVerticalBlock"] {
-    gap: 0.65rem !important;
+    gap: 0.12rem !important;
     height: 100% !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: flex-start !important;
-    overflow-y: auto !important;
+    overflow-y: visible !important;
     overflow-x: hidden !important;
 }
 
 [data-testid="column"]:has(.explorer-filter-panel-marker) div[data-testid="stSelectbox"] {
-    margin-bottom: 6px !important;
+    margin-bottom: 0 !important;
 }
 
 [data-testid="column"]:has(.explorer-filter-panel-marker) div[data-testid="stSelectbox"] label {
-    margin-bottom: 2px !important;
-    font-size: var(--font-size-label) !important;
+    margin-bottom: 0 !important;
+    font-size: 0.75rem !important;
 }
 
 [data-testid="column"]:has(.explorer-filter-panel-marker) [data-testid="stWidgetLabel"],
-[data-testid="column"]:has(.explorer-filter-panel-marker) [data-testid="stWidgetLabel"] p,
+[data-testid="column"]:has(.explorer-filter-panel-marker) [data-testid="stWidgetLabel"] p {
+    font-size: 0.75rem !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0 !important;
+}
+
 [data-testid="column"]:has(.explorer-filter-panel-marker) div[data-baseweb="select"] > div {
-    font-size: var(--font-size-control) !important;
+    font-size: 0.8125rem !important;
+    min-height: 1.65rem !important;
 }
 
 [data-testid="column"]:has(.explorer-filter-panel-marker) [data-testid="stHorizontalBlock"] {
-    gap: 0.45rem !important;
+    gap: 0.3rem !important;
 }
 
 [data-testid="column"]:has(.explorer-filter-panel-marker)
@@ -126,12 +153,17 @@
 
 [data-testid="column"]:has(.explorer-filter-panel-marker) div.stButton {
     flex-shrink: 0 !important;
-    margin-top: auto !important;
-    padding-top: 8px !important;
-    position: sticky !important;
-    bottom: 0 !important;
-    background: var(--surface-elevated) !important;
+    margin-top: 2px !important;
+    padding-top: 0 !important;
+    position: static !important;
+    background: transparent !important;
     z-index: 1 !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) div.stButton > button {
+    min-height: 1.75rem !important;
+    padding: 0.15rem 0.45rem !important;
+    font-size: 0.8125rem !important;
 }
 
 [data-testid="column"]:has(.explorer-main-panel-marker) {
@@ -183,8 +215,16 @@
     display: none;
 }
 
-[data-testid="column"]:has(.explorer-main-panel-marker) .explorer-flight-log-marker + div[data-testid="stHtml"],
-[data-testid="column"]:has(.explorer-main-panel-marker) .explorer-flight-log-marker ~ [data-testid="element-container"] [data-testid="stHtml"],
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:has(.explorer-flight-log-marker) {
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:has(.explorer-flight-log-marker) + [data-testid="element-container"] [data-testid="stHtml"],
 [data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:last-of-type [data-testid="stHtml"] {
     width: 100% !important;
     max-width: 100% !important;
@@ -237,4 +277,25 @@
     width: 100% !important;
     display: block;
     border: none;
+}
+
+[data-testid="column"]:has(.explorer-chart-panel-marker) {
+    align-self: start;
+}
+
+[data-testid="column"]:has(.explorer-chart-panel-marker) [data-testid="stHtml"],
+[data-testid="column"]:has(.explorer-routes-panel-marker) [data-testid="stHtml"] {
+    height: var(--explorer-compact-height) !important;
+    min-height: var(--explorer-compact-height) !important;
+    max-height: var(--explorer-compact-height) !important;
+}
+
+[data-testid="column"]:has(.explorer-chart-panel-marker) [data-testid="stHtml"] iframe,
+[data-testid="column"]:has(.explorer-routes-panel-marker) [data-testid="stHtml"] iframe {
+    display: block;
+    border: none;
+    width: 100% !important;
+    height: var(--explorer-compact-height) !important;
+    min-height: var(--explorer-compact-height) !important;
+    max-height: var(--explorer-compact-height) !important;
 }

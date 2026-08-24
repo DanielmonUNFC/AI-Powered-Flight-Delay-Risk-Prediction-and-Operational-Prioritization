@@ -8,7 +8,7 @@
         0.75rem + 3.75rem + 3rem + 2.25rem + 1.35rem + var(--tab-content-offset) + 0.5rem
     );
     --prioritization-shell-height: calc(100vh - var(--prioritization-chrome-height));
-    --prioritization-table-height: 360px;
+    --prioritization-table-height: 520px;
 }
 
 .page-subtitle--prioritization {
@@ -258,12 +258,14 @@
 [data-testid="element-container"]:has(.prioritization-table-marker)
     + [data-testid="element-container"] {
     flex: 1 1 auto !important;
-    min-height: 0 !important;
+    min-height: var(--prioritization-table-height) !important;
+    height: var(--prioritization-table-height) !important;
 }
 
 [data-testid="stVerticalBlock"]:has(.prioritization-layout-marker)
     > [data-testid="element-container"]:has(.prioritization-table-marker)
     + [data-testid="element-container"] {
     flex: 1 1 auto !important;
-    min-height: 0 !important;
+    min-height: var(--prioritization-table-height) !important;
+    height: var(--prioritization-table-height) !important;
 }

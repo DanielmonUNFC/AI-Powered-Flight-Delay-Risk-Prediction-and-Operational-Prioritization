@@ -5,11 +5,7 @@ from components.chart_panel import render_chart_panel
 from components.insight_card import render_insight_card
 from components.kpi_card import render_kpi_card
 from config.panel_icons import ICON_DELAY_CAUSES, ICON_INSIGHT, ICON_MONTHLY_TREND
-from services.prototype_data import (
-    get_delay_causes_breakdown,
-    get_monthly_delay_trend,
-    get_overview_kpis,
-)
+from services.overview_data import get_overview_page_data
 
 
 def render_overview_page() -> None:
@@ -23,60 +19,48 @@ def render_overview_page() -> None:
         unsafe_allow_html=True,
     )
 
-    kpis = get_overview_kpis()
+    overview_data = get_overview_page_data()
+    if overview_data is None:
+        st.warning("Overview data is unavailable. Verify that the API is running and reachable.")
+        return
+
+    kpis = overview_data["kpis"]
     col1, col2, col3, col4 = st.columns(4, gap="medium")
 
     with col1:
-        render_kpi_card(
-            "Total Flights",
-            kpis["total_flights"],
-            kpis["total_flights_sub"],
-            kpis["total_flights_positive"],
-        )
+        render_kpi_card("Total Flights", kpis["total_flights"])
     with col2:
         render_kpi_card(
-            "Avg Delay Rate",
+            "Delayed Arrival Rate (15+ min)",
             kpis["avg_delay_rate"],
-            kpis["avg_delay_sub"],
-            kpis["avg_delay_positive"],
         )
     with col3:
         render_kpi_card(
-            "Avg Arr Delay",
+            "Average Arrival Delay (minutes)",
             kpis["avg_arr_delay"],
-            kpis["avg_arr_sub"],
-            kpis["avg_arr_positive"],
         )
     with col4:
-        render_kpi_card(
-            "Cancel Rate",
-            kpis["cancel_rate"],
-            kpis["cancel_rate_sub"],
-            kpis["cancel_rate_positive"],
-        )
+        render_kpi_card("Cancellation Rate", kpis["cancellation_rate"])
 
     st.markdown('<div class="section-spacer"></div>', unsafe_allow_html=True)
 
-    trend_df = get_monthly_delay_trend()
-    causes_df = get_delay_causes_breakdown()
     col_left, col_right = st.columns([1.8, 1.2], gap="medium")
 
     with col_left:
         render_chart_panel(
             "Monthly Delay Rate Trend (2025)",
             ICON_MONTHLY_TREND,
-            create_monthly_trend_figure(trend_df),
+            create_monthly_trend_figure(overview_data["monthly_trend"]),
         )
 
     with col_right:
         render_chart_panel(
             "Total Delay Minutes by Cause",
             ICON_DELAY_CAUSES,
-            create_delay_causes_figure(causes_df),
+            create_delay_causes_figure(overview_data["delay_causes"]),
         )
 
     render_insight_card(
         "Key Operational Insight",
-        "Late aircraft propagation and carrier-related operational bottlenecks account for "
-        "<b>64.2%</b> of total accumulated delay minutes across major US airport hubs in 2025.",
+        overview_data["insight_html"],
     )

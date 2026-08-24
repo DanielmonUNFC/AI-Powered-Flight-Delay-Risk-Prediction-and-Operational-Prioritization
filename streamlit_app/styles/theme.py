@@ -26,8 +26,10 @@ COLORS: Final[dict[str, str]] = {
     "grid": "#1e293b",
 }
 
-CHART_HEIGHT: Final[int] = 280
-COMPACT_PANEL_HEIGHT: Final[int] = 360
+CHART_HEIGHT: Final[int] = 320
+COMPACT_PANEL_HEIGHT: Final[int] = 400
+EXPLORER_COMPACT_PANEL_HEIGHT: Final[int] = 420
+EXPLORER_FLIGHT_LOG_MIN_HEIGHT: Final[int] = 320
 EXPLORER_FLIGHT_LOG_FALLBACK_HEIGHT: Final[int] = 380
 PROJECT_INFO_ROW_GAP_PX: Final[int] = 25
 

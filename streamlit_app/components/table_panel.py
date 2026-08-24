@@ -16,6 +16,7 @@ def _base_table_styles() -> str:
         {typography_css_variables()}
         .surface-table {{
             width: 100%;
+            min-width: 920px;
             border-collapse: collapse;
             font-size: var(--font-size-body-sm);
         }}
@@ -121,7 +122,7 @@ def _build_table_html(df: pd.DataFrame, row_class_col: Optional[str] = None) -> 
 
 
 def _scroll_footer(row_count: int, footer_text: str = "") -> str:
-    caption = footer_text or f"Showing {row_count} flights · scroll to browse"
+    caption = footer_text or f"Showing {row_count} flights · scroll horizontally and vertically to browse"
     return f"""
         <div class="table-footer">
             <span>{caption}</span>
@@ -166,7 +167,7 @@ def render_table_panel(
             height=panel_height,
             footer_html=_scroll_footer(len(df), footer_text),
             scrollable=True,
-            fill_height=use_fluid_layout,
+            fill_height=True,
             header_action=header_action,
             extra_css=_scrollable_table_styles(fluid=use_fluid_layout) + extra_css,
         )
