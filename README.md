@@ -27,6 +27,19 @@ The objective of this project is to develop an AI-powered decision support syste
 **Study period:** 2025  
 **Prediction target:** `ArrDel15` (arrival delay ≥ 15 minutes)
 
+### Data Acquisition
+
+| Item | Detail |
+|---|---|
+| Download tool | BTS TranStats "Reporting Carrier On-Time Performance" download form (https://www.transtats.bts.gov/DL_SelectFields.aspx) |
+| Monthly flight files | 12 files, `T_ONTIME_REPORTING_<MONTH>_2025.csv` (January-December 2025) |
+| Reference (lookup) files | 7 files: `L_AIRPORT_Origin_Dest.csv`, `L_CANCELLATION_CancellationCode.csv`, `L_MONTHS_Month.csv`, `L_QUARTERS_Quarter.csv`, `L_UNIQUE_CARRIERS_Reporting_Airline.csv`, `L_WEEKDAYS_DayOfWeek.csv`, `L_YESNO_RESP_ArrDel15_DepDel15_Cancelled_Diverted.csv` |
+| Columns requested | 32 fields covering calendar, schedule, airline/route, delay, and cancellation/diversion attributes — see [`EXPECTED_RAW_COLUMNS`](notebooks/config/project_config.py) for the exact list |
+| Selection rationale | Only fields needed for schedule-time prediction, descriptive/diagnostic analytics, and the leakage audit were requested — no passenger-level or unrelated BTS fields were downloaded |
+| Download period | January 2025 - December 2025 |
+
+Raw files are landed unmodified into the Databricks Volume (`/raw`, `/reference`) and their presence/count is validated in [`00_environment_setup`](notebooks/00_environment_setup.ipynb) before ingestion.
+
 ---
 
 ## Technology Stack
@@ -63,8 +76,8 @@ Run the notebooks in order on Databricks:
 00_environment_setup
 01_data_ingestion
 02_data_profiling
-03_exploratory_data_analysis
-04_data_cleaning
+03_data_cleaning
+04_descriptive_analytics
 05_statistical_analysis
 06_feature_engineering
 07_model_training
@@ -80,7 +93,7 @@ After model changes in notebooks 07–09, re-run **07 → 11** to refresh checkp
 
 | Notebook | Primary outputs |
 |---|---|
-| 04 | `flights_clean` |
+| 03 | `flights_clean` |
 | 05 | `statistical_analysis_results` |
 | 06 | `flights_features` |
 | 07–08 | Selected Spark ML model, checkpoints, evaluation metrics |
@@ -94,7 +107,7 @@ After model changes in notebooks 07–09, re-run **07 → 11** to refresh checkp
 |---|---|---|
 | RQ1 | Can flight delays be accurately predicted before departure? | 05, 07, 08 |
 | RQ2 | Which operational factors contribute most to delays? | 05, 09 |
-| RQ3 | Do airlines and airports differ in delay rates? | 03, 05 |
+| RQ3 | Do airlines and airports differ in delay rates? | 04, 05 |
 | RQ4 | Can prescriptive prioritization improve operational decisions? | 10 |
 | RQ5 | Can SHAP improve prediction interpretability? | 09 |
 

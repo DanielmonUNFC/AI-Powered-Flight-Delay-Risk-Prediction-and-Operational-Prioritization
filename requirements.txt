@@ -11,6 +11,8 @@ pyspark
 # Machine Learning
 # ==========================================
 scikit-learn
+xgboost==2.1.4
+joblib
 mlflow
 shap
 
