@@ -149,7 +149,7 @@ def one_way_anova(
 def kruskal_wallis_test(
     groups: Iterable[pd.Series],
 ) -> dict[str, float | bool | str]:
-    """Compare continuous distributions across independent groups."""
+    """Compare continuous distributions and compute epsilon-squared."""
     clean_groups = [
         group.dropna().astype(float)
         for group in groups
@@ -162,14 +162,21 @@ def kruskal_wallis_test(
         )
 
     h_statistic, p_value = stats.kruskal(*clean_groups)
+    group_count = len(clean_groups)
+    sample_size = sum(len(group) for group in clean_groups)
+    epsilon_squared = (
+        max(0.0, (h_statistic - group_count + 1) / (sample_size - group_count))
+        if sample_size > group_count
+        else 0.0
+    )
 
     return {
         "test_name": "Kruskal-Wallis H-Test",
         "statistic": float(h_statistic),
         "p_value": float(p_value),
-        "degrees_of_freedom": float(len(clean_groups) - 1),
-        "effect_size": float(h_statistic),
-        "effect_size_label": "Kruskal-Wallis H",
+        "degrees_of_freedom": float(group_count - 1),
+        "effect_size": float(epsilon_squared),
+        "effect_size_label": "Epsilon-squared",
         "minimum_expected_frequency": np.nan,
         "assumptions_met": True,
     }
@@ -242,7 +249,7 @@ def interpret_effect_size(effect_size_label: str, value: float) -> str:
             return "Moderate"
         return "Strong"
 
-    if effect_size_label == "Eta-squared":
+    if effect_size_label in ("Eta-squared", "Epsilon-squared"):
         if magnitude < 0.01:
             return "Negligible"
         if magnitude < 0.06:

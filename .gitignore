@@ -222,3 +222,4 @@ api/.env
 
 # Streamlit configuration file
 streamlit_app/.env
+.databricks
