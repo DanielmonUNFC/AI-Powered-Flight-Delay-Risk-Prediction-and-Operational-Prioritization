@@ -5,33 +5,25 @@ from typing import Optional
 from charts.explorer_charts import (
     build_filtered_flight_log_table,
     build_top_delayed_routes_table,
+    build_route_summary_table,
     create_airline_performance_figure,
 )
 from components.chart_panel import render_chart_panel
 from components.explorer_layout_sync import render_explorer_layout_sync
-from components.filter_panel import render_explorer_filters
+from components.filter_panel import render_explorer_filter_query
 from components.table_panel import render_table_panel
 from config.panel_icons import ICON_AIRLINE_CHART, ICON_FLIGHT_LOG, ICON_ROUTES
 from config.api_settings import get_api_settings
-from services.explorer_data import get_explorer_page_data
+from services.explorer_data import get_explorer_filter_options, get_explorer_page_data
 from styles.theme import EXPLORER_COMPACT_PANEL_HEIGHT
 
 
 def render_flight_explorer_page(df: Optional[pd.DataFrame] = None) -> None:
     """Render the Flight Explorer analytics tab."""
-    if df is None:
-        df = get_explorer_page_data()
-        if df is None:
-            st.warning(
-                "Explorer data is unavailable. Verify that the API is running "
-                "and reachable."
-            )
-            return
-
     st.markdown(
         """
         <div class="page-subtitle page-subtitle--explorer">
-            Historical Flight Performance & Route Drill-down Analytics
+            Scored Holdout Flight Risk & Route Drill-down Analytics
         </div>
         <span class="explorer-layout-marker"></span>
         """,
@@ -43,7 +35,19 @@ def render_flight_explorer_page(df: Optional[pd.DataFrame] = None) -> None:
 
     with col_filters:
         st.markdown('<span class="explorer-filter-panel-marker"></span>', unsafe_allow_html=True)
-        filtered_df = render_explorer_filters(df)
+        options = get_explorer_filter_options()
+        if options is None:
+            return
+        filters = render_explorer_filter_query(options)
+
+    page_data = get_explorer_page_data(filters)
+    if page_data is None:
+        return
+    filtered_df = page_data["flights"]
+    airline_summary = page_data["airline_summary"].rename(
+        columns={"MeanDelayProb": "DelayProb"}
+    )
+    route_summary = page_data["route_summary"]
 
     with col_main:
         st.markdown('<span class="explorer-main-panel-marker"></span>', unsafe_allow_html=True)
@@ -57,7 +61,7 @@ def render_flight_explorer_page(df: Optional[pd.DataFrame] = None) -> None:
             )
             chart_body_height = EXPLORER_COMPACT_PANEL_HEIGHT - 52
             airline_figure = create_airline_performance_figure(
-                filtered_df,
+                airline_summary,
                 chart_height=chart_body_height,
             )
             if airline_figure is not None:
@@ -83,7 +87,7 @@ def render_flight_explorer_page(df: Optional[pd.DataFrame] = None) -> None:
             render_table_panel(
                 "Top Routes by Predicted Delay Risk (Filtered)",
                 ICON_ROUTES,
-                build_top_delayed_routes_table(filtered_df),
+                build_route_summary_table(route_summary),
                 height=EXPLORER_COMPACT_PANEL_HEIGHT,
                 scrollable=True,
                 footer_text="Top routes by peak predicted delay risk · scroll to browse",
@@ -127,8 +131,8 @@ def render_flight_explorer_page(df: Optional[pd.DataFrame] = None) -> None:
             row_class_col="_row_class",
             header_action="ⓘ",
             footer_text=(
-                f"Showing {len(flight_log)} filtered flights "
-                f"(loaded up to {api_limit} from API) · scroll to browse"
+                f"Showing {len(flight_log)} of {page_data['total_count']:,} filtered flights "
+                f"(detail limit {api_limit}) · charts use the full filtered population"
             ),
             extra_css="""
                 .surface-table thead th {

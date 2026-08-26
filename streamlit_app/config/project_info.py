@@ -17,7 +17,6 @@ from config.panel_icons import (
     TECH_ICON_DELTA_LAKE,
     TECH_ICON_FASTAPI,
     TECH_ICON_GITHUB,
-    TECH_ICON_ORTOOLS,
     TECH_ICON_PYSPARK,
     TECH_ICON_PYTHON,
     TECH_ICON_SHAP,
@@ -144,7 +143,7 @@ DATASET_INFORMATION: Final[FactCardSection] = FactCardSection(
         FactItem("Source", "Bureau of Transportation Statistics"),
         FactItem("Dataset", "Airline On-Time Performance"),
         FactItem("Study Period", "2025"),
-        FactItem("Flights", "~6 million"),
+        FactItem("Flights", "6.88 million"),
     ),
 )
 
@@ -165,8 +164,8 @@ RESEARCH_QUESTIONS: Final[ResearchQuestionsSection] = ResearchQuestionsSection(
         ResearchQuestion("RQ1", "Predict Delay Risk"),
         ResearchQuestion("RQ2", "Delay Factors"),
         ResearchQuestion("RQ3", "Operational Differences"),
-        ResearchQuestion("RQ4", "Operational Prioritization"),
-        ResearchQuestion("RQ5", "Explainability"),
+        ResearchQuestion("RQ4", "Model Explainability"),
+        ResearchQuestion("RQ5", "Operational Prioritization"),
     ),
 )
 
@@ -200,7 +199,7 @@ TECH_STACK_SECTION: Final[TechStackSection] = TechStackSection(
         TechStackItem("Python", TECH_ICON_PYTHON),
         TechStackItem("XGBoost", TECH_ICON_XGBOOST),
         TechStackItem("SHAP", TECH_ICON_SHAP),
-        TechStackItem("OR-Tools", TECH_ICON_ORTOOLS),
+        TechStackItem("SciPy MILP", TECH_ICON_PYTHON),
         TechStackItem("FastAPI", TECH_ICON_FASTAPI),
         TechStackItem("Streamlit", TECH_ICON_STREAMLIT),
         TechStackItem("GitHub", TECH_ICON_GITHUB),
@@ -228,10 +227,6 @@ PROJECT_OVERVIEW: Final[ProjectOverviewContent] = ProjectOverviewContent(
     tech_stack=TECH_STACK_SECTION,
     team=TEAM_SECTION,
 )
-
-# Backward-compatible alias for imports that still reference PROJECT_INFORMATION.
-PROJECT_INFORMATION = PROJECT_OVERVIEW
-
 
 def team_photo_path(member: TeamMember):
     """Return the on-disk path for a team member photo."""

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import html
 
-import streamlit as st
-
 from components.panel_header import panel_header_html
 
 
@@ -25,25 +23,6 @@ def build_info_panel_html(
         f"{header_html}"
         f'<div class="project-info-panel__body">{body_html}</div>'
         f"</div>"
-    )
-
-
-def render_info_panel(
-    title: str,
-    icon_id: str,
-    body_html: str,
-    *,
-    panel_class: str = "",
-) -> None:
-    """Render a titled surface card with custom HTML body content."""
-    st.markdown(
-        build_info_panel_html(
-            title,
-            icon_id,
-            body_html,
-            panel_class=panel_class,
-        ),
-        unsafe_allow_html=True,
     )
 
 

@@ -46,6 +46,14 @@ def add_operational_scores(
     medium_threshold: float = 0.30,
 ) -> pd.DataFrame:
     """Add risk level, priority score, and recommendation columns."""
+    if not (
+        0.0 <= medium_threshold <= high_threshold
+        < critical_threshold <= 1.0
+    ):
+        raise ValueError(
+            "Risk thresholds must satisfy 0 <= medium <= high "
+            "< critical <= 1."
+        )
     scored = frame.copy()
     scored["risk_level"] = scored[probability_column].astype(float).apply(
         lambda value: classify_risk_level(
@@ -68,7 +76,7 @@ def optimize_flight_selection_greedy(
     capacity_k: int,
     airline_column: str = "airline_code",
     origin_column: str = "origin_airport",
-    score_column: str = "priority_score",
+    score_column: str = "delay_probability",
     max_per_airline: int = 4,
     max_per_airport: int = 5,
 ) -> pd.Series:
@@ -110,78 +118,70 @@ def optimize_flight_selection(
     capacity_k: int,
     airline_column: str = "airline_code",
     origin_column: str = "origin_airport",
-    score_column: str = "priority_score",
+    score_column: str = "delay_probability",
     max_per_airline: int = 4,
     max_per_airport: int = 5,
 ) -> pd.Series:
-    """Select flights using OR-Tools when available, otherwise greedy selection."""
+    """Solve the constrained binary selection problem with SciPy MILP."""
     try:
-        from ortools.sat.python import cp_model
-    except ImportError:
-        return optimize_flight_selection_greedy(
-            pool,
-            capacity_k=capacity_k,
-            airline_column=airline_column,
-            origin_column=origin_column,
-            score_column=score_column,
-            max_per_airline=max_per_airline,
-            max_per_airport=max_per_airport,
-        )
+        from scipy.optimize import Bounds, LinearConstraint, milp
+        from scipy.sparse import csr_matrix
+    except ImportError as exc:
+        raise RuntimeError(
+            "SciPy MILP is required for the RQ5 optimization comparison."
+        ) from exc
 
     if pool.empty:
         return pd.Series(dtype=bool)
 
-    model = cp_model.CpModel()
     flight_indexes = list(pool.index)
-    decision_vars = {
-        index: model.new_bool_var(f"flight_{position}")
-        for position, index in enumerate(flight_indexes)
+    position_by_index = {
+        index: position for position, index in enumerate(flight_indexes)
     }
+    row_indexes: list[int] = []
+    column_indexes: list[int] = []
+    values: list[float] = []
+    upper_bounds: list[float] = []
 
-    model.add(
-        sum(decision_vars.values()) <= capacity_k
+    def add_constraint(indexes: Iterable[int], upper_bound: int) -> None:
+        row = len(upper_bounds)
+        for index in indexes:
+            row_indexes.append(row)
+            column_indexes.append(position_by_index[index])
+            values.append(1.0)
+        upper_bounds.append(float(upper_bound))
+
+    add_constraint(flight_indexes, capacity_k)
+    for _, airline_frame in pool.groupby(airline_column):
+        add_constraint(airline_frame.index, max_per_airline)
+    for _, origin_frame in pool.groupby(origin_column):
+        add_constraint(origin_frame.index, max_per_airport)
+
+    constraint_matrix = csr_matrix(
+        (values, (row_indexes, column_indexes)),
+        shape=(len(upper_bounds), len(flight_indexes)),
+    )
+    scores = pool[score_column].astype(float).clip(lower=0).to_numpy()
+    result = milp(
+        c=-scores,
+        integrality=np.ones(len(flight_indexes), dtype=int),
+        bounds=Bounds(0.0, 1.0),
+        constraints=LinearConstraint(
+            constraint_matrix,
+            lb=-np.inf,
+            ub=np.asarray(upper_bounds),
+        ),
+        options={"time_limit": 30.0, "presolve": True},
     )
 
-    for airline, airline_frame in pool.groupby(airline_column):
-        model.add(
-            sum(decision_vars[index] for index in airline_frame.index)
-            <= max_per_airline
-        )
-
-    for origin, origin_frame in pool.groupby(origin_column):
-        model.add(
-            sum(decision_vars[index] for index in origin_frame.index)
-            <= max_per_airport
-        )
-
-    scaled_scores = (
-        pool[score_column].astype(float).clip(lower=0).round().astype(int)
-    )
-    model.maximize(
-        sum(
-            int(scaled_scores.loc[index]) * decision_vars[index]
-            for index in flight_indexes
-        )
-    )
-
-    solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = 30.0
-    status = solver.solve(model)
-
-    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        return optimize_flight_selection_greedy(
-            pool,
-            capacity_k=capacity_k,
-            airline_column=airline_column,
-            origin_column=origin_column,
-            score_column=score_column,
-            max_per_airline=max_per_airline,
-            max_per_airport=max_per_airport,
+    if not result.success or result.x is None:
+        raise RuntimeError(
+            "The SciPy MILP solver did not produce a valid prioritization "
+            f"solution: {result.message}"
         )
 
     selected_flags = pd.Series(False, index=pool.index, dtype=bool)
-    for index in flight_indexes:
-        selected_flags.loc[index] = bool(solver.value(decision_vars[index]))
+    selected_flags.loc[flight_indexes] = result.x >= 0.5
     return selected_flags
 
 
@@ -326,30 +326,35 @@ def compare_prioritization_strategies(
     label_column: str = "actual_delay",
     airline_column: str = "airline_code",
     origin_column: str = "origin_airport",
+    random_repeats: int = 500,
 ) -> pd.DataFrame:
-    """Compare optimized prioritization against a random baseline for RQ4."""
+    """Compare RQ5 strategies at the same effective review capacity.
+
+    The constrained optimizer can select fewer than the requested capacity
+    when diversification limits bind. The simple and random baselines are
+    therefore evaluated using the optimizer's actual selection count. Random
+    selection is repeated to avoid drawing a conclusion from one lucky draw.
+    """
+    if random_repeats < 1:
+        raise ValueError("random_repeats must be at least 1.")
+
     prioritized_flags = optimize_flight_selection(
         pool,
         capacity_k=capacity_k,
         airline_column=airline_column,
         origin_column=origin_column,
     )
+    effective_capacity = int(prioritized_flags.sum())
     top_k_flags = build_top_k_probability_selection(
         pool,
-        capacity_k=capacity_k,
-    )
-    random_flags = build_random_selection(
-        pool,
-        capacity_k=capacity_k,
-        random_seed=random_seed,
+        capacity_k=effective_capacity,
     )
 
     rows = []
-    for strategy_name, flags in (
+    for strategy_name, flags in [
         (STRATEGY_CONSTRAINED_OPTIMIZED, prioritized_flags),
         (STRATEGY_TOP_K_PROBABILITY, top_k_flags),
-        (STRATEGY_RANDOM_BASELINE, random_flags),
-    ):
+    ]:
         metrics = evaluate_prioritization_scenario(
             pool,
             flags,
@@ -358,10 +363,76 @@ def compare_prioritization_strategies(
         rows.append(
             {
                 "capacity_k": capacity_k,
+                "effective_capacity_k": effective_capacity,
                 "strategy": strategy_name,
+                "random_repeats": random_repeats,
+                "captured_delays_ci_low": np.nan,
+                "captured_delays_ci_high": np.nan,
+                "random_p_at_least_optimized": np.nan,
                 **metrics,
             }
         )
+
+    labels = pool[label_column].astype(int).to_numpy()
+    population_size = len(labels)
+    total_delayed = int(labels.sum())
+    random_expected = (
+        total_delayed / population_size * effective_capacity
+        if population_size > 0
+        else 0.0
+    )
+    random_generator = np.random.default_rng(random_seed)
+    random_metrics = []
+    for _ in range(random_repeats):
+        selected_positions = random_generator.choice(
+            population_size,
+            size=effective_capacity,
+            replace=False,
+        )
+        captured_delays = int(labels[selected_positions].sum())
+        random_metrics.append(
+            {
+                "population_size": float(population_size),
+                "selected_count": float(effective_capacity),
+                "total_delayed_flights": float(total_delayed),
+                "captured_delayed_flights": float(captured_delays),
+                "delay_recall": (
+                    captured_delays / total_delayed
+                    if total_delayed > 0
+                    else 0.0
+                ),
+                "delay_precision": (
+                    captured_delays / effective_capacity
+                    if effective_capacity > 0
+                    else 0.0
+                ),
+                "lift_vs_random": (
+                    captured_delays / random_expected
+                    if random_expected > 0
+                    else 0.0
+                ),
+            }
+        )
+
+    random_frame = pd.DataFrame(random_metrics)
+    optimized_captured = rows[0]["captured_delayed_flights"]
+    random_captured = random_frame["captured_delayed_flights"]
+    random_mean = random_frame.mean(numeric_only=True).to_dict()
+    rows.append(
+        {
+            "capacity_k": capacity_k,
+            "effective_capacity_k": effective_capacity,
+            "strategy": STRATEGY_RANDOM_BASELINE,
+            "random_repeats": random_repeats,
+            "captured_delays_ci_low": float(random_captured.quantile(0.025)),
+            "captured_delays_ci_high": float(random_captured.quantile(0.975)),
+            "random_p_at_least_optimized": float(
+                (1 + (random_captured >= optimized_captured).sum())
+                / (random_repeats + 1)
+            ),
+            **random_mean,
+        }
+    )
     return pd.DataFrame(rows)
 
 

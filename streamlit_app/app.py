@@ -28,7 +28,7 @@ tab_overview, tab_explorer, tab_prediction, tab_insights, tab_prioritization, ta
     "Delay Prediction",
     "Model Insights",
     "Operational Prioritization",
-    "Project Overview"
+    "Project Overview",
 ])
 
 # 5. Tab Views Router

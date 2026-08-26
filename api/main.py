@@ -7,10 +7,14 @@ from fastapi import FastAPI, HTTPException
 from api.core.config import get_settings
 from api.db.databricks import execute_query
 from api.routers.explorer import router as explorer_router
+from api.routers.model_insights import router as model_insights_router
 from api.routers.overview import router as overview_router
+from api.routers.prediction import router as prediction_router
 from api.routers.prioritization import router as prioritization_router
 from api.services.explorer_service import warm_explorer_cache
+from api.services.model_insights_service import warm_model_insights_cache
 from api.services.overview_service import warm_overview_cache
+from api.services.prediction_service import warm_prediction_model
 from api.services.prioritization_service import warm_prioritization_cache
 
 
@@ -44,6 +48,18 @@ async def lifespan(_: FastAPI):
     except Exception as error:
         logger.warning("Prioritization warm-up failed: %s", error)
 
+    try:
+        warm_model_insights_cache()
+        logger.info("Model Insights cache warmed at startup.")
+    except Exception as error:
+        logger.warning("Model Insights warm-up failed: %s", error)
+
+    # A serving-contract mismatch means the deployed preprocessing/model path
+    # is not equivalent to Notebook 08. Fail startup instead of serving an
+    # unverified model.
+    warm_prediction_model()
+    logger.info("Prediction model loaded and serving contract validated.")
+
     yield
 
 
@@ -64,6 +80,14 @@ app.include_router(
 )
 app.include_router(
     prioritization_router,
+    prefix=settings.api_prefix,
+)
+app.include_router(
+    model_insights_router,
+    prefix=settings.api_prefix,
+)
+app.include_router(
+    prediction_router,
     prefix=settings.api_prefix,
 )
 

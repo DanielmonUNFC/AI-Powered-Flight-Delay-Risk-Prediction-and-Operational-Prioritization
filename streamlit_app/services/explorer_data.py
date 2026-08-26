@@ -8,7 +8,11 @@ import pandas as pd
 import streamlit as st
 
 from config.api_settings import get_api_settings
-from services.api_client import ApiClientError, fetch_explorer_data
+from services.api_client import (
+    ApiClientError,
+    fetch_explorer_data,
+    fetch_explorer_options,
+)
 
 
 EXPLORER_DF_COLUMNS = [
@@ -97,12 +101,12 @@ def _transform_flights(flights: list[dict]) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def _fetch_explorer_payload(api_url: str, limit: int) -> dict:
+def _fetch_explorer_payload(api_url: str, limit: int, filters: tuple) -> dict:
     """Cache Explorer API response for 5 minutes."""
-    return fetch_explorer_data(limit=limit)
+    return fetch_explorer_data(limit=limit, **dict(filters))
 
 
-def get_explorer_page_data() -> Optional[pd.DataFrame]:
+def get_explorer_page_data(filters: dict | None = None) -> Optional[dict]:
     """Return Explorer tab data from FastAPI, or None when unavailable."""
     settings = get_api_settings()
 
@@ -117,9 +121,25 @@ def get_explorer_page_data() -> Optional[pd.DataFrame]:
         payload = _fetch_explorer_payload(
             settings.explorer_url,
             settings.explorer_limit,
+            tuple(sorted((filters or {}).items())),
         )
     except ApiClientError as error:
         st.error(f"Unable to load Explorer data from API: {error}")
         return None
 
-    return _transform_flights(payload["flights"])
+    return {
+        "flights": _transform_flights(payload["flights"]),
+        "airline_summary": pd.DataFrame(payload["airline_summary"]),
+        "route_summary": pd.DataFrame(payload["route_summary"]),
+        "total_count": payload["total_count"],
+    }
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_explorer_filter_options() -> Optional[dict]:
+    """Return complete server-side filter choices."""
+    try:
+        return fetch_explorer_options()
+    except ApiClientError as error:
+        st.error(f"Unable to load Explorer filter options: {error}")
+        return None

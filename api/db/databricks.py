@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from databricks import sql
 
@@ -35,21 +35,33 @@ def execute_query(
     Execute a SQL query in Databricks and return the results
     as a list of dictionaries.
     """
+    return execute_queries([(query, parameters)])[0]
+
+
+def execute_queries(
+    statements: Sequence[Tuple[str, Optional[List[Any]]]],
+) -> List[List[Dict[str, Any]]]:
+    """Execute multiple read queries through one Databricks connection."""
+    if not statements:
+        return []
+
+    results: List[List[Dict[str, Any]]] = []
     with get_databricks_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute(query, parameters or [])
+            for query, parameters in statements:
+                cursor.execute(query, parameters or [])
+                results.append(_fetch_cursor_rows(cursor))
 
-            if cursor.description is None:
-                return []
+    return results
 
-            column_names = [
-                column[0]
-                for column in cursor.description
-            ]
 
-            rows = cursor.fetchall()
+def _fetch_cursor_rows(cursor: Any) -> List[Dict[str, Any]]:
+    """Convert the active cursor result into dictionaries."""
+    if cursor.description is None:
+        return []
 
+    column_names = [column[0] for column in cursor.description]
     return [
         dict(zip(column_names, row))
-        for row in rows
+        for row in cursor.fetchall()
     ]

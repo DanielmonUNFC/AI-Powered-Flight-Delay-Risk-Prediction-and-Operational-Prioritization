@@ -61,19 +61,12 @@ def _build_kpis(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
     existing_names = {item["metric_name"] for item in kpis}
-    next_order = len(kpis) + 1
-
-    for metric_name in OVERVIEW_KPI_METRICS:
-        if metric_name not in existing_names:
-            kpis.append(
-                {
-                    "metric_name": metric_name,
-                    "value": 0.0,
-                    "display": "0",
-                    "sort_order": next_order,
-                }
-            )
-            next_order += 1
+    missing = sorted(set(OVERVIEW_KPI_METRICS) - existing_names)
+    if missing:
+        raise RuntimeError(
+            "The Overview dataset is incomplete. Missing required KPI metrics: "
+            f"{missing}. Run Notebook 11 again."
+        )
 
     return sorted(kpis, key=lambda item: item["sort_order"])
 
@@ -112,8 +105,15 @@ def _build_operational_insight(
     """Calculate the Key Operational Insight from delay cause shares."""
     lookup = {item["cause"]: item["percentage"] for item in delay_causes}
 
+    missing_causes = sorted(set(INSIGHT_CAUSES) - set(lookup))
+    if missing_causes:
+        raise RuntimeError(
+            "The Overview dataset is incomplete. Missing required delay causes: "
+            f"{missing_causes}. Run Notebook 11 again."
+        )
+
     combined_share = round(
-        sum(lookup.get(cause, 0.0) for cause in INSIGHT_CAUSES),
+        sum(lookup[cause] for cause in INSIGHT_CAUSES),
         1,
     )
 

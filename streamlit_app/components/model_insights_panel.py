@@ -54,6 +54,7 @@ def render_local_prediction_explanation_panel(
     predicted_probability = explanation.get(
         "predicted_probability"
     )
+    decision_threshold = explanation.get("decision_threshold")
     flight_id = str(
         explanation.get("flight_id", "Unknown Flight")
     )
@@ -73,10 +74,16 @@ def render_local_prediction_explanation_panel(
             "Local explanation is missing predicted_probability."
         )
 
+    if decision_threshold is None:
+        raise ValueError(
+            "Local explanation is missing decision_threshold."
+        )
+
     figure = build_local_prediction_explanation_chart(
         contributions,
         base_probability=float(base_probability),
         predicted_probability=float(predicted_probability),
+        decision_threshold=float(decision_threshold),
     )
 
     _render_model_insights_chart(

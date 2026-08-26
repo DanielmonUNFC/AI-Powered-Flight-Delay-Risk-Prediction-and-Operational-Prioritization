@@ -21,6 +21,13 @@ FILTER_DEFAULTS = {
     "f_sort_by": "Highest Delay Risk",
 }
 
+MINIMUM_RISK_OPTIONS = {
+    "All": None,
+    "MEDIUM or higher (≥ 20.00%)": 0.20,
+    "HIGH or higher (≥ 40.95%)": 0.4095,
+    "CRITICAL (≥ 48.20%)": 0.4820,
+}
+
 
 def reset_filters_callback() -> None:
     """Reset all explorer filter widgets to their default values."""
@@ -32,6 +39,8 @@ def _init_filter_state() -> None:
     """Ensure filter widget keys exist in session state."""
     for key, value in FILTER_DEFAULTS.items():
         st.session_state.setdefault(key, value)
+    if st.session_state["f_min_delay"] not in MINIMUM_RISK_OPTIONS:
+        st.session_state["f_min_delay"] = "All"
 
 
 def _apply_filters(df: pd.DataFrame) -> pd.DataFrame:
@@ -52,19 +61,26 @@ def _apply_filters(df: pd.DataFrame) -> pd.DataFrame:
             filtered_df["Destination"] == st.session_state["f_dest_code"]
         ]
     if st.session_state["f_status"] == "Predicted Delayed":
-        filtered_df = filtered_df[filtered_df["DelayProb"] >= 0.5]
+        filtered_df = filtered_df[
+            filtered_df["Status"] == "Predicted Delayed"
+        ]
     elif st.session_state["f_status"] == "Predicted On-Time":
-        filtered_df = filtered_df[filtered_df["DelayProb"] < 0.5]
+        filtered_df = filtered_df[
+            filtered_df["Status"] == "Predicted On-Time"
+        ]
     if st.session_state["f_risk_tier"] != "All":
         filtered_df = filtered_df[filtered_df["RiskTier"] == st.session_state["f_risk_tier"]]
     if st.session_state["f_dep_window"] != "All":
         filtered_df = filtered_df[
             filtered_df["DepartureWindow"] == st.session_state["f_dep_window"]
         ]
-    if st.session_state["f_min_delay"] == "≥ 50%":
-        filtered_df = filtered_df[filtered_df["DelayProb"] >= 0.5]
-    elif st.session_state["f_min_delay"] == "≥ 80%":
-        filtered_df = filtered_df[filtered_df["DelayProb"] >= 0.8]
+    minimum_probability = MINIMUM_RISK_OPTIONS[
+        st.session_state["f_min_delay"]
+    ]
+    if minimum_probability is not None:
+        filtered_df = filtered_df[
+            filtered_df["DelayProb"] >= minimum_probability
+        ]
 
     sort_by = st.session_state["f_sort_by"]
     if sort_by == "Highest Delay Risk":
@@ -149,7 +165,11 @@ def render_explorer_filters(df: pd.DataFrame) -> pd.DataFrame:
 
     compact_left, compact_right = st.columns(2)
     with compact_left:
-        st.selectbox("Min Delay", ["All", "≥ 50%", "≥ 80%"], key="f_min_delay")
+        st.selectbox(
+            "Minimum Risk",
+            list(MINIMUM_RISK_OPTIONS),
+            key="f_min_delay",
+        )
     with compact_right:
         st.selectbox(
             "Sort By",
@@ -192,3 +212,37 @@ def render_explorer_filters(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     return _apply_filters(df)
+
+
+def render_explorer_filter_query(options: dict) -> dict:
+    """Render the same controls and return values for server-side filtering."""
+    _init_filter_state()
+    st.markdown(panel_header_html("Explorer Filters", ICON_EXPLORER_FILTERS), unsafe_allow_html=True)
+    carriers = {row["Name"]: row["Code"] for row in options["carriers"]}
+    origins = {row["Name"]: row["Code"] for row in options["origins"]}
+    destinations = {row["Name"]: row["Code"] for row in options["destinations"]}
+    left, right = st.columns(2)
+    with left: st.selectbox("Month", ["All"] + options["months"], key="f_month")
+    with right: st.selectbox("Predicted Outcome", ["All", "Predicted Delayed", "Predicted On-Time"], key="f_status")
+    left, right = st.columns(2)
+    with left: st.selectbox("Risk Tier", ["All"] + options["risk_tiers"], key="f_risk_tier")
+    with right: st.selectbox("Dep. Window", ["All"] + options["departure_windows"], key="f_dep_window")
+    left, right = st.columns(2)
+    with left: st.selectbox("Minimum Risk", list(MINIMUM_RISK_OPTIONS), key="f_min_delay")
+    with right: st.selectbox("Sort By", ["Highest Delay Risk", "Lowest Delay Risk", "Departure Time"], key="f_sort_by")
+    left, right = st.columns(2)
+    with left: origin_label = st.selectbox("Origin", ["All"] + list(origins), key="f_origin")
+    with right: dest_label = st.selectbox("Destination", ["All"] + list(destinations), key="f_dest")
+    carrier_label = st.selectbox("Carrier", ["All"] + list(carriers), key="f_carrier")
+    st.button("↺ Reset", on_click=reset_filters_callback, use_container_width=True, key="explorer_reset_filters")
+    return {
+        "month": None if st.session_state["f_month"] == "All" else st.session_state["f_month"],
+        "outcome": None if st.session_state["f_status"] == "All" else st.session_state["f_status"],
+        "risk_tier": None if st.session_state["f_risk_tier"] == "All" else st.session_state["f_risk_tier"],
+        "departure_window": None if st.session_state["f_dep_window"] == "All" else st.session_state["f_dep_window"],
+        "minimum_risk": MINIMUM_RISK_OPTIONS[st.session_state["f_min_delay"]],
+        "origin": None if origin_label == "All" else origins[origin_label],
+        "destination": None if dest_label == "All" else destinations[dest_label],
+        "carrier": None if carrier_label == "All" else carriers[carrier_label],
+        "sort_by": st.session_state["f_sort_by"],
+    }

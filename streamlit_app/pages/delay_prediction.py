@@ -16,17 +16,21 @@ from components.prediction_result_panel import (
     render_recommendation_result,
 )
 from config.panel_icons import ICON_DELAY_PREDICTION
-from services.prototype_data import get_mock_prediction
+from services.api_client import (
+    ApiClientError,
+    create_prediction,
+    fetch_prediction_options,
+)
 
 
 _PREDICTION_STATE_KEY = "delay_prediction_result"
 _PREDICTION_ERROR_KEY = "delay_prediction_error"
 
 _FORM_DEFAULTS: dict[str, object] = {
-    "delay_prediction_airline": "Delta Air Lines (DL)",
+    "delay_prediction_airline": "DL",
     "delay_prediction_flight_number": "",
-    "delay_prediction_origin": "KATL - Atlanta",
-    "delay_prediction_destination": "KORD - Chicago",
+    "delay_prediction_origin": "ATL",
+    "delay_prediction_destination": "ORD",
     "delay_prediction_flight_date": date.today(),
     "delay_prediction_departure_time": time(hour=8, minute=0),
     "delay_prediction_arrival_time": time(hour=10, minute=30),
@@ -50,8 +54,18 @@ def render_delay_prediction_page() -> None:
 
     col_form, col_results = st.columns([1, 2.4], gap="medium")
 
+    options = _load_prediction_options()
+
     with col_form:
-        submitted = _render_prediction_form()
+        if options is None:
+            st.error(
+                "Unable to load the live prediction form. Verify the API and "
+                "rerun Notebook 08 to publish the inference-ready model bundle."
+            )
+            submitted = False
+        else:
+            _synchronize_option_state(options)
+            submitted = _render_prediction_form(options)
 
         if submitted:
             _handle_prediction_submit()
@@ -78,7 +92,7 @@ def render_delay_prediction_page() -> None:
     render_delay_prediction_layout_sync()
 
 
-def _render_prediction_form() -> bool:
+def _render_prediction_form(options: dict) -> bool:
     """Render the bordered flight-parameter panel and return submit state."""
 
     st.markdown(
@@ -94,21 +108,28 @@ def _render_prediction_form() -> bool:
 
     airline_column, flight_number_column = st.columns(2)
 
+    airline_labels = {
+        item["code"]: item["name"]
+        for item in options["airlines"]
+    }
+    airport_labels = {
+        item["code"]: item["name"]
+        for item in options["airports"]
+    }
+    airline_codes = list(airline_labels)
+    airline_routes = options.get("airline_routes", {})
+
     with airline_column:
         st.selectbox(
             "Airline",
-            [
-                "Delta Air Lines (DL)",
-                "American Airlines (AA)",
-                "United Airlines (UA)",
-                "Southwest Airlines (WN)",
-            ],
+            airline_codes,
+            format_func=lambda code: f"{code} · {airline_labels[code]}",
             key="delay_prediction_airline",
         )
 
     with flight_number_column:
         st.text_input(
-            "Flight Number (optional)",
+            "Flight Number (optional, reference only)",
             placeholder="DL215",
             key="delay_prediction_flight_number",
         )
@@ -120,27 +141,42 @@ def _render_prediction_form() -> bool:
 
     _render_form_section("Route Information")
 
+    selected_airline = st.session_state["delay_prediction_airline"]
+    supported_route_keys = airline_routes.get(selected_airline) or [
+        f"{route['origin']}|{route['destination']}" for route in options["routes"]
+    ]
+    route_pairs = [route.split("|", 1) for route in supported_route_keys]
+    origin_codes = sorted({origin for origin, _ in route_pairs})
+    if st.session_state["delay_prediction_origin"] not in origin_codes:
+        st.session_state["delay_prediction_origin"] = origin_codes[0]
+    selected_origin = st.session_state["delay_prediction_origin"]
+    destination_codes = sorted(
+        destination for origin, destination in route_pairs if origin == selected_origin
+    )
+    if st.session_state["delay_prediction_destination"] not in destination_codes:
+        st.session_state["delay_prediction_destination"] = destination_codes[0]
+
     origin_column, destination_column = st.columns(2)
 
     with origin_column:
         st.selectbox(
             "Origin Airport",
-            [
-                "KATL - Atlanta",
-                "KORD - Chicago",
-                "KLAX - Los Angeles",
-            ],
+            origin_codes,
+            format_func=lambda code: _airport_label(
+                code,
+                airport_labels[code],
+            ),
             key="delay_prediction_origin",
         )
 
     with destination_column:
         st.selectbox(
             "Destination Airport",
-            [
-                "KORD - Chicago",
-                "KATL - Atlanta",
-                "KLAX - Los Angeles",
-            ],
+            destination_codes,
+            format_func=lambda code: _airport_label(
+                code,
+                airport_labels[code],
+            ),
             key="delay_prediction_destination",
         )
 
@@ -174,7 +210,7 @@ def _render_prediction_form() -> bool:
 
 
 def _handle_prediction_submit() -> None:
-    """Validate inputs and persist a mock prediction result."""
+    """Validate inputs and request a live prediction."""
 
     origin = str(st.session_state.get("delay_prediction_origin", ""))
     destination = str(st.session_state.get("delay_prediction_destination", ""))
@@ -188,25 +224,33 @@ def _handle_prediction_submit() -> None:
         st.session_state[_PREDICTION_ERROR_KEY] = validation_error
         return
 
-    try:
-        st.session_state[_PREDICTION_STATE_KEY] = get_mock_prediction(
-            airline=str(st.session_state["delay_prediction_airline"]),
-            flight_number=str(
-                st.session_state.get("delay_prediction_flight_number", "")
-            ),
-            origin=origin,
-            destination=destination,
-            flight_date=st.session_state["delay_prediction_flight_date"],
-            scheduled_departure=st.session_state["delay_prediction_departure_time"],
-            scheduled_arrival=st.session_state["delay_prediction_arrival_time"],
-        )
-        st.session_state[_PREDICTION_ERROR_KEY] = None
-    except (TypeError, ValueError):
-        st.session_state[_PREDICTION_ERROR_KEY] = (
-            "Unable to generate a prediction with the current inputs. "
-            "Please verify the route and schedule, then try again."
-        )
+    payload = {
+        "airline": st.session_state["delay_prediction_airline"],
+        "flight_number": (
+            st.session_state["delay_prediction_flight_number"] or None
+        ),
+        "origin": st.session_state["delay_prediction_origin"],
+        "destination": st.session_state["delay_prediction_destination"],
+        "flight_date": st.session_state[
+            "delay_prediction_flight_date"
+        ].isoformat(),
+        "scheduled_departure": st.session_state[
+            "delay_prediction_departure_time"
+        ].strftime("%H:%M:%S"),
+        "scheduled_arrival": st.session_state[
+            "delay_prediction_arrival_time"
+        ].strftime("%H:%M:%S"),
+    }
 
+    try:
+        result = create_prediction(payload)
+    except ApiClientError as error:
+        st.session_state[_PREDICTION_STATE_KEY] = None
+        st.session_state[_PREDICTION_ERROR_KEY] = str(error)
+        return
+
+    st.session_state[_PREDICTION_STATE_KEY] = result
+    st.session_state[_PREDICTION_ERROR_KEY] = None
 
 def _render_form_section(title: str) -> None:
     """Render a grouped section label inside the parameter form."""
@@ -240,3 +284,45 @@ def _validate_prediction_inputs(
         return "Origin and destination must be different airports."
 
     return None
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _fetch_prediction_options_cached() -> dict:
+    """Cache stable form options for one hour."""
+    return fetch_prediction_options()
+
+
+def _load_prediction_options() -> dict | None:
+    try:
+        options = _fetch_prediction_options_cached()
+    except ApiClientError as error:
+        st.session_state[_PREDICTION_ERROR_KEY] = str(error)
+        return None
+
+    if not options.get("airlines") or not options.get("airports"):
+        st.session_state[_PREDICTION_ERROR_KEY] = (
+            "The prediction API returned no supported airlines or airports."
+        )
+        return None
+    return options
+
+
+def _synchronize_option_state(options: dict) -> None:
+    """Replace obsolete hardcoded selections with supported API values."""
+    airline_codes = [item["code"] for item in options["airlines"]]
+    airport_codes = [item["code"] for item in options["airports"]]
+
+    if st.session_state["delay_prediction_airline"] not in airline_codes:
+        st.session_state["delay_prediction_airline"] = airline_codes[0]
+    if st.session_state["delay_prediction_origin"] not in airport_codes:
+        st.session_state["delay_prediction_origin"] = airport_codes[0]
+    if st.session_state["delay_prediction_destination"] not in airport_codes:
+        st.session_state["delay_prediction_destination"] = (
+            airport_codes[1] if len(airport_codes) > 1 else airport_codes[0]
+        )
+
+
+def _airport_label(code: str, description: str) -> str:
+    """Return a compact code-and-name label without changing the form layout."""
+    name = description.split(":", maxsplit=1)[-1].strip()
+    return f"{code} · {name or description}"
