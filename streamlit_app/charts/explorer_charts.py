@@ -121,6 +121,19 @@ def build_top_delayed_routes_table(df: pd.DataFrame) -> pd.DataFrame:
     return routes[["Route", "Flights", "Peak Delay Risk"]]
 
 
+def build_route_summary_table(summary: pd.DataFrame) -> pd.DataFrame:
+    """Format unbiased route aggregates returned by the API."""
+    if summary.empty:
+        return pd.DataFrame(columns=["Route", "Flights", "Peak Delay Risk"])
+    result = summary.copy()
+    result["Route"] = result["Origin"] + " → " + result["Destination"]
+    result["Flights"] = result["Flights"].astype(int).astype(str)
+    result["Peak Delay Risk"] = result["PeakDelayProb"].apply(
+        lambda value: f'<span class="delay-value">{value * 100:.1f}%</span>'
+    )
+    return result[["Route", "Flights", "Peak Delay Risk"]]
+
+
 def build_filtered_flight_log_table(df: pd.DataFrame) -> pd.DataFrame:
     """Prepare the detailed flight log table with row styling helpers."""
     if df.empty:

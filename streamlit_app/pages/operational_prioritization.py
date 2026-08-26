@@ -12,6 +12,7 @@ from charts.prioritization_charts import (
 from components.prioritization_controls import render_prioritization_controls
 from components.prioritization_layout_sync import render_prioritization_layout_sync
 from components.prioritization_summary_panel import render_prioritization_summary_panel
+from components.insight_card import render_insight_card
 from components.table_panel import render_table_panel
 from config.panel_icons import ICON_PRIORITY_RANKING
 from services.prioritization_data import (
@@ -42,9 +43,34 @@ def render_operational_prioritization_page() -> None:
         )
         return
 
-    ranking, summary, table_meta = page_data
+    ranking, summary, table_meta, rq5_evaluation = page_data
 
     render_prioritization_summary_panel(format_summary_values(summary))
+    p_value_text = (
+        f"p={rq5_evaluation.random_p_value:.4f}"
+        if rq5_evaluation.random_p_value is not None
+        else "p-value unavailable"
+    )
+    effective_capacity_note = (
+        ""
+        if rq5_evaluation.effective_capacity_k == rq5_evaluation.capacity_k
+        else (
+            " The diversification constraints permitted only "
+            f"{rq5_evaluation.effective_capacity_k} selections."
+        )
+    )
+    render_insight_card(
+        f"RQ5 comparison at K={rq5_evaluation.capacity_k}: "
+        f"{rq5_evaluation.verdict}",
+        (
+            f"Optimization captured {rq5_evaluation.optimized_delays:.0f} "
+            "actually delayed flights, compared with "
+            f"{rq5_evaluation.simple_rule_delays:.0f} using the simple "
+            f"Top-K rule and {rq5_evaluation.random_mean_delays:.1f} on "
+            f"average under random selection ({p_value_text})."
+            f"{effective_capacity_note}"
+        ),
+    )
 
     st.markdown(
         '<span class="prioritization-table-marker"></span>',

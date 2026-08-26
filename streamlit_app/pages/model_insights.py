@@ -1,4 +1,4 @@
-"""Model Insights page."""
+"""Model Insights page backed only by real SHAP artifacts."""
 
 from __future__ import annotations
 
@@ -9,14 +9,11 @@ from components.model_insights_panel import (
     render_local_prediction_explanation_panel,
     render_model_insights_error,
 )
-from services.prototype_data import (
-    get_global_feature_importance,
-    get_local_prediction_explanation,
-)
+from services.model_insights_data import get_model_insights_page_data
 
 
 def render_model_insights_page() -> None:
-    """Render the Model Insights page using prototype SHAP data."""
+    """Render Model Insights without substituting simulated results."""
 
     st.markdown(
         """
@@ -32,35 +29,35 @@ def render_model_insights_page() -> None:
         gap="large",
     )
 
-    try:
-        feature_importance = get_global_feature_importance()
-        local_explanation = get_local_prediction_explanation()
-    except Exception:
-        render_model_insights_error(
-            "The prototype explainability data could not be loaded."
-        )
+    insights_data = get_model_insights_page_data()
+    if insights_data is None:
+        with global_column:
+            render_model_insights_error(
+                "Global SHAP results are unavailable from the API."
+            )
+        with local_column:
+            render_model_insights_error(
+                "Local SHAP results are unavailable from the API."
+            )
         return
 
     with global_column:
         try:
-            render_global_feature_importance_panel(
-                feature_importance
-            )
-        except (TypeError, ValueError) as exc:
-            render_model_insights_error(str(exc))
-        except Exception:
+            feature_importance = insights_data["global_importance"]
+            if feature_importance.empty:
+                raise ValueError("The SHAP importance table is empty.")
+            render_global_feature_importance_panel(feature_importance)
+        except Exception as error:
             render_model_insights_error(
-                "The global feature-importance chart could not be rendered."
+                f"Unable to load the real global SHAP results: {error}"
             )
 
     with local_column:
         try:
             render_local_prediction_explanation_panel(
-                local_explanation
+                insights_data["local_explanation"]
             )
-        except (TypeError, ValueError) as exc:
-            render_model_insights_error(str(exc))
-        except Exception:
+        except Exception as error:
             render_model_insights_error(
-                "The local prediction explanation could not be rendered."
+                f"Unable to render the real local SHAP explanation: {error}"
             )

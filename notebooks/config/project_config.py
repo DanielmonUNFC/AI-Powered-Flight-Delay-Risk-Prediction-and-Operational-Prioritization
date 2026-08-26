@@ -63,7 +63,6 @@ YES_NO_REFERENCE_FILE = (
 RAW_TABLE = f"{CATALOG}.{SCHEMA}.flights_raw"
 CLEAN_TABLE = f"{CATALOG}.{SCHEMA}.flights_clean"
 FEATURES_TABLE = f"{CATALOG}.{SCHEMA}.flights_features"
-FEATURES_V2_TABLE = f"{CATALOG}.{SCHEMA}.flights_features_v2"
 PREDICTIONS_TABLE = f"{CATALOG}.{SCHEMA}.flight_predictions"
 DASHBOARD_TABLE = f"{CATALOG}.{SCHEMA}.flight_dashboard"
 AIRLINES_LOOKUP_TABLE = f"{CATALOG}.{SCHEMA}.airlines_lookup"
@@ -80,6 +79,23 @@ YES_NO_LOOKUP_TABLE = f"{CATALOG}.{SCHEMA}.yes_no_lookup"
 
 EXPECTED_FILE_COUNT = 12
 EXPECTED_FILE_EXTENSION = ".csv"
+EXPECTED_RAW_FILES = [
+    f"T_ONTIME_REPORTING_{month}_2025.csv"
+    for month in (
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+    )
+]
 
 # ============================================================
 # Reference data validation
@@ -434,30 +450,6 @@ MODEL_FEATURE_COLUMNS = [
     TARGET_COLUMN,
 ]
 
-# Version 2 preserves every V1 feature and adds only information derivable
-# from the published schedule. No observed operational outcome is introduced.
-MODEL_V2_ENGINEERED_FEATURE_COLUMNS = [
-    ROUTE_COLUMN,
-    DEP_TIME_SIN_COLUMN,
-    DEP_TIME_COS_COLUMN,
-    ARR_TIME_SIN_COLUMN,
-    ARR_TIME_COS_COLUMN,
-    MONTH_SIN_COLUMN,
-    MONTH_COS_COLUMN,
-    DAY_OF_WEEK_SIN_COLUMN,
-    DAY_OF_WEEK_COS_COLUMN,
-    ORIGIN_SCHEDULED_DEPARTURES_HOUR_COLUMN,
-    DEST_SCHEDULED_ARRIVALS_HOUR_COLUMN,
-    ROUTE_DAILY_FLIGHT_COUNT_COLUMN,
-    SCHEDULED_SPEED_MPH_COLUMN,
-]
-
-MODEL_FEATURE_COLUMNS_V2 = [
-    *[column for column in MODEL_FEATURE_COLUMNS if column != TARGET_COLUMN],
-    *MODEL_V2_ENGINEERED_FEATURE_COLUMNS,
-    TARGET_COLUMN,
-]
-
 MODEL_PREDICTOR_COLUMNS = [
     column for column in MODEL_FEATURE_COLUMNS if column != TARGET_COLUMN
 ]
@@ -467,24 +459,6 @@ MODEL_HISTORICAL_RATE_COLUMNS = [
     "ORIGIN_HIST_DELAY_RATE",
     "DEST_HIST_DELAY_RATE",
     "ROUTE_HIST_DELAY_RATE",
-]
-
-MODEL_INTERACTION_HISTORICAL_RATE_COLUMNS = [
-    "AIRLINE_ORIGIN_HIST_DELAY_RATE",
-    "AIRLINE_DEST_HIST_DELAY_RATE",
-]
-
-HISTORICAL_RECENT_WINDOW_DAYS = (7, 30)
-MODEL_RECENT_HISTORICAL_RATE_COLUMNS = [
-    f"{entity}_{window_days}D_HIST_DELAY_RATE"
-    for entity in ("AIRLINE", "ORIGIN", "DEST", "ROUTE")
-    for window_days in HISTORICAL_RECENT_WINDOW_DAYS
-]
-
-MODEL_HISTORICAL_RATE_COLUMNS_V2 = [
-    *MODEL_HISTORICAL_RATE_COLUMNS,
-    *MODEL_INTERACTION_HISTORICAL_RATE_COLUMNS,
-    *MODEL_RECENT_HISTORICAL_RATE_COLUMNS,
 ]
 
 # Intermediate leakage-safe building blocks. Never used as model inputs.
@@ -571,10 +545,12 @@ RANDOM_SEED = 42
 TRAIN_RATIO = 0.80
 TEST_RATIO = 0.20
 
+DATA_START_DATE = "2025-01-01"
 TRAIN_END_DATE = "2025-08-31"
 VALIDATION_START_DATE = "2025-09-01"
 VALIDATION_END_DATE = "2025-10-31"
 TEST_START_DATE = "2025-11-01"
+TEST_END_DATE = "2025-12-31"
 
 HISTORICAL_SMOOTHING_STRENGTH = 100.0
 # Symmetric Bernoulli prior used only when no earlier training date exists.
@@ -589,8 +565,8 @@ MIN_OPERATIONAL_FLIGHTS = 1000
 MIN_ROUTE_FLIGHTS = 100
 TOP_N_RESULTS = 20
 
-LOW_RISK_THRESHOLD = 0.30
-HIGH_RISK_THRESHOLD = 0.60
+HIGH_RISK_PERCENTILE = 0.95
+CRITICAL_RISK_PERCENTILE = 0.99
 
 
 # ============================================================
@@ -706,16 +682,6 @@ TUNING_FOLDS = [
 # This constant mirrors the currently approved V1 candidate for summaries.
 SELECTED_MODEL_NAME = "XGBoost"
 
-MODELING_TRAIN_HASHED_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_train_hashed"
-MODELING_VALIDATION_HASHED_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_modeling_validation_hashed"
-)
-MODELING_TEST_HASHED_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_test_hashed"
-MODELING_TRAIN_HIST_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_train_hist"
-MODELING_VALIDATION_HIST_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_modeling_validation_hist"
-)
-MODELING_TEST_HIST_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_modeling_test_hist"
 TUNED_MODEL_COMPARISON_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison"
 BASELINE_MODEL_COMPARISON_TABLE = (
     f"{CATALOG}.{SCHEMA}.flight_delay_baseline_model_comparison"
@@ -725,38 +691,9 @@ FINALIST_MODEL_COMPARISON_TABLE = (
 )
 CANDIDATE_SELECTION_PATH = f"{MODELS_PATH}/candidate_model_selection.json"
 MODEL_FEATURE_MANIFEST_PATH = f"{MODELS_PATH}/model_feature_manifest.json"
-TUNED_MODEL_COMPARISON_V2_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison_v2"
-)
-BASELINE_MODEL_COMPARISON_V2_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_baseline_model_comparison_v2"
-)
-FINALIST_MODEL_COMPARISON_V2_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_finalist_model_comparison_v2"
-)
 MODEL_VERSION_COMPARISON_TABLE = (
     f"{CATALOG}.{SCHEMA}.flight_delay_model_version_comparison"
 )
-CANDIDATE_SELECTION_V2_PATH = (
-    f"{MODELS_PATH}/candidate_model_selection_v2.json"
-)
-MODEL_FEATURE_MANIFEST_V2_PATH = f"{MODELS_PATH}/model_feature_manifest_v2.json"
-TUNED_MODEL_COMPARISON_V3_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_tuned_model_comparison_v3"
-)
-BASELINE_MODEL_COMPARISON_V3_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_baseline_model_comparison_v3"
-)
-FINALIST_MODEL_COMPARISON_V3_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_finalist_model_comparison_v3"
-)
-MODEL_VERSION_COMPARISON_V3_TABLE = (
-    f"{CATALOG}.{SCHEMA}.flight_delay_model_version_comparison_v3"
-)
-CANDIDATE_SELECTION_V3_PATH = (
-    f"{MODELS_PATH}/candidate_model_selection_v3.json"
-)
-MODEL_FEATURE_MANIFEST_V3_PATH = f"{MODELS_PATH}/model_feature_manifest_v3.json"
 
 # Standard-Python model inputs. City/state fields and QUARTER are omitted
 # because they duplicate information already represented by airport and MONTH.
@@ -782,34 +719,6 @@ PYTHON_MODEL_NUMERICAL_COLUMNS = [
 ]
 PYTHON_MODEL_INPUT_COLUMNS = (
     PYTHON_MODEL_CATEGORICAL_COLUMNS + PYTHON_MODEL_NUMERICAL_COLUMNS
-)
-
-PYTHON_MODEL_CATEGORICAL_COLUMNS_V2 = [
-    *PYTHON_MODEL_CATEGORICAL_COLUMNS,
-    ROUTE_COLUMN,
-]
-PYTHON_MODEL_NUMERICAL_COLUMNS_V2 = [
-    *[
-        column
-        for column in PYTHON_MODEL_NUMERICAL_COLUMNS
-        if column not in MODEL_HISTORICAL_RATE_COLUMNS
-    ],
-    DEP_TIME_SIN_COLUMN,
-    DEP_TIME_COS_COLUMN,
-    ARR_TIME_SIN_COLUMN,
-    ARR_TIME_COS_COLUMN,
-    MONTH_SIN_COLUMN,
-    MONTH_COS_COLUMN,
-    DAY_OF_WEEK_SIN_COLUMN,
-    DAY_OF_WEEK_COS_COLUMN,
-    ORIGIN_SCHEDULED_DEPARTURES_HOUR_COLUMN,
-    DEST_SCHEDULED_ARRIVALS_HOUR_COLUMN,
-    ROUTE_DAILY_FLIGHT_COUNT_COLUMN,
-    SCHEDULED_SPEED_MPH_COLUMN,
-    *MODEL_HISTORICAL_RATE_COLUMNS_V2,
-]
-PYTHON_MODEL_INPUT_COLUMNS_V2 = (
-    PYTHON_MODEL_CATEGORICAL_COLUMNS_V2 + PYTHON_MODEL_NUMERICAL_COLUMNS_V2
 )
 
 # Runtime-aware deep tuning. Sampling is uniform within each chronological
@@ -846,6 +755,9 @@ SHAP_DIRECTION_EFFECTS_TABLE = (
     f"{CATALOG}.{SCHEMA}.flight_delay_shap_direction_effects"
 )
 SHAP_VALUES_SAMPLE_TABLE = f"{CATALOG}.{SCHEMA}.flight_delay_shap_values_sample"
+SHAP_LOCAL_EXPLANATION_TABLE = (
+    f"{CATALOG}.{SCHEMA}.flight_delay_shap_local_explanation"
+)
 SHAP_ARTIFACTS_PATH = f"{MODELS_PATH}/shap_artifacts"
 SHAP_LOCAL_EXPLANATION_PATH = f"{SHAP_ARTIFACTS_PATH}/local_explanation.json"
 CALIBRATION_BINS = 10
@@ -866,7 +778,6 @@ SUBGROUP_ERROR_COLUMNS = [
 ]
 
 MODEL_TRAINING_REQUIRED_COLUMNS = set(MODEL_FEATURE_COLUMNS)
-MODEL_TRAINING_REQUIRED_COLUMNS_V2 = set(MODEL_FEATURE_COLUMNS_V2)
 
 
 # ============================================================
@@ -882,6 +793,7 @@ STATISTICAL_MIN_EXPECTED_FREQUENCY = 5
 STATISTICAL_TOP_AIRLINES = 10
 STATISTICAL_TOP_AIRPORTS = 15
 STATISTICAL_TOP_DEST_AIRPORTS = 15
+STATISTICAL_TOP_ROUTES = 20
 
 STATISTICAL_CATEGORICAL_FACTORS = [
     MONTH_COLUMN,
@@ -895,11 +807,27 @@ STATISTICAL_CATEGORICAL_FACTORS = [
 ]
 
 RESEARCH_QUESTIONS = {
-    "RQ1": "Can flight delays be accurately predicted before departure using operational flight information?",
-    "RQ2": "Which operational factors contribute the most to flight delays?",
-    "RQ3": "Do certain airlines and airports consistently experience higher delay rates than others?",
-    "RQ4": "Can prescriptive analytics improve operational decision-making by prioritizing high-risk flights under limited resources?",
-    "RQ5": "Can Explainable Artificial Intelligence (SHAP) improve the interpretability of flight delay predictions for airline operations?",
+    "RQ1": (
+        "How accurately can schedule-time flight information predict whether "
+        "a flight will arrive at least 15 minutes late?"
+    ),
+    "RQ2": (
+        "Which scheduling, airline, airport, route, and temporal factors are "
+        "most strongly associated with arrival-delay risk?"
+    ),
+    "RQ3": (
+        "How do delay rates differ across airlines, airports, routes, "
+        "departure periods, and seasons?"
+    ),
+    "RQ4": (
+        "How can SHAP explanations help users understand the factors driving "
+        "overall and individual flight-delay predictions?"
+    ),
+    "RQ5": (
+        "Can an optimization-based prioritization method identify more "
+        "actually delayed flights than random selection or simple rule-based "
+        "prioritization when operational capacity is limited?"
+    ),
 }
 
 
@@ -923,10 +851,12 @@ CAPACITY_K_OPTIONS = (10, 25, 50, 100)
 DEFAULT_CAPACITY_K = 25
 MAX_FLIGHTS_PER_AIRPORT = 5
 MAX_FLIGHTS_PER_AIRLINE = 4
-PRIORITIZATION_POOL_MIN_PROB = HIGH_RISK_THRESHOLD
+PRIORITIZATION_CANDIDATE_POOL_SIZE = 10000
+PRIORITIZATION_RANDOM_REPEATS = 500
+PRIORITIZATION_LOCAL_SHAP_ROWS = 20000
 
-SCORING_START_DATE = VALIDATION_START_DATE
-SCORING_END_DATE = VALIDATION_END_DATE
+SCORING_START_DATE = TEST_START_DATE
+SCORING_END_DATE = TEST_END_DATE
 
 RISK_RECOMMENDATIONS = {
     "LOW": "Routine Monitoring",
@@ -934,10 +864,6 @@ RISK_RECOMMENDATIONS = {
     "HIGH": "Priority Operational Review",
     "CRITICAL": "Immediate Operational Assessment",
 }
-
-CRITICAL_RISK_THRESHOLD = 0.80
-MEDIUM_RISK_THRESHOLD = LOW_RISK_THRESHOLD
-
 
 # ============================================================
 # Dashboard preparation configuration

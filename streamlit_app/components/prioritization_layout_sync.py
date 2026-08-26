@@ -60,11 +60,6 @@ _HEIGHT_SYNC_SCRIPT = """
         });
     });
 
-    const observer = new MutationObserver(function () {
-        scheduleSync();
-    });
-    observer.observe(doc.body, { childList: true, subtree: true });
-
     scheduleSync();
     win.setTimeout(scheduleSync, 250);
     win.setTimeout(scheduleSync, 800);

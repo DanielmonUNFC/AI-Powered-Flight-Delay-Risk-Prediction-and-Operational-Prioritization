@@ -43,8 +43,3 @@ def build_tech_stack_panel_html(section: TechStackSection) -> str:
         body_html=body_html,
         panel_class="project-info-panel--tech",
     )
-
-
-def render_tech_stack_panel(section: TechStackSection) -> None:
-    """Render the technology stack panel."""
-    st.markdown(build_tech_stack_panel_html(section), unsafe_allow_html=True)

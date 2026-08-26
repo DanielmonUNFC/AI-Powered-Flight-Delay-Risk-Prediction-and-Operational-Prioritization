@@ -51,6 +51,21 @@ class PrioritizationTableMeta:
     display_limit: int
 
 
+@dataclass(frozen=True)
+class Rq5Evaluation:
+    """Notebook 10 comparison for the selected operational capacity."""
+
+    capacity_k: int
+    effective_capacity_k: int
+    optimized_delays: float
+    simple_rule_delays: float
+    random_mean_delays: float
+    random_p_value: float | None
+    beats_random: bool
+    beats_simple_rule: bool
+    verdict: str
+
+
 def normalize_capacity_k(capacity_k: int) -> int:
     """Return a supported operational capacity value."""
     if capacity_k in CAPACITY_K_OPTIONS:
@@ -109,6 +124,22 @@ def _transform_table_meta(payload: dict) -> PrioritizationTableMeta:
     )
 
 
+def _transform_rq5_evaluation(payload: dict) -> Rq5Evaluation:
+    evaluation = payload["rq5_evaluation"]
+    random_p_value = evaluation.get("random_p_value")
+    return Rq5Evaluation(
+        capacity_k=int(evaluation["capacity_k"]),
+        effective_capacity_k=int(evaluation["effective_capacity_k"]),
+        optimized_delays=float(evaluation["optimized_delays"]),
+        simple_rule_delays=float(evaluation["simple_rule_delays"]),
+        random_mean_delays=float(evaluation["random_mean_delays"]),
+        random_p_value=(
+            float(random_p_value) if random_p_value is not None else None
+        ),
+        beats_random=bool(evaluation["beats_random"]),
+        beats_simple_rule=bool(evaluation["beats_simple_rule"]),
+        verdict=str(evaluation["verdict"]),
+    )
 def format_summary_values(summary: PrioritizationSummary) -> dict[str, str]:
     """Format summary metrics for UI rendering."""
     return {
@@ -135,7 +166,14 @@ def _fetch_prioritization_payload(
 
 def get_prioritization_page_data(
     capacity_k: int = DEFAULT_CAPACITY_K,
-) -> Optional[tuple[pd.DataFrame, PrioritizationSummary, PrioritizationTableMeta]]:
+) -> Optional[
+    tuple[
+        pd.DataFrame,
+        PrioritizationSummary,
+        PrioritizationTableMeta,
+        Rq5Evaluation,
+    ]
+]:
     """Return prioritization ranking, summary, and table metadata from FastAPI."""
     settings = get_api_settings()
     safe_capacity_k = normalize_capacity_k(capacity_k)
@@ -160,4 +198,5 @@ def get_prioritization_page_data(
     ranking = _transform_ranking(payload["flights"])
     summary = _transform_summary(payload["summary"], safe_capacity_k)
     table_meta = _transform_table_meta(payload)
-    return ranking, summary, table_meta
+    rq5_evaluation = _transform_rq5_evaluation(payload)
+    return ranking, summary, table_meta, rq5_evaluation

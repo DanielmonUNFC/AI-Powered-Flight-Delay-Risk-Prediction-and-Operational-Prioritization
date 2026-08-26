@@ -36,7 +36,7 @@ def render_prediction_placeholder() -> None:
     body_html = """
         <div class="prediction-placeholder">
             Enter the flight parameters and select Predict Delay Risk
-            to generate a mocked prediction.
+            to request a live prediction.
         </div>
     """
 
@@ -119,6 +119,14 @@ def render_recommendation_result(
         )
     )
 
+    provenance = html.escape(str(result.get("provenance_note", "")))
+    extrapolation = ""
+    if result.get("is_temporal_extrapolation"):
+        extrapolation = (
+            '<span class="prediction-recommendation__text">'
+            'Future-date estimate: operational conditions after the reference '
+            'date are not observed.</span>'
+        )
     body_html = f"""
         <div class="prediction-recommendation">
             <span class="prediction-recommendation__label">
@@ -128,6 +136,8 @@ def render_recommendation_result(
             <span class="prediction-recommendation__text">
                 {recommendation}
             </span>
+            <span class="prediction-recommendation__text">{provenance}</span>
+            {extrapolation}
         </div>
     """
 
@@ -147,9 +157,11 @@ def _get_probability(
     """Read and validate the numeric prediction probability."""
 
     try:
-        probability = float(
-            result.get("probability", 0.0)
-        )
+        probability = float(result["probability"])
+    except KeyError as exc:
+        raise ValueError(
+            "Prediction response is missing the probability field."
+        ) from exc
     except (TypeError, ValueError) as exc:
         raise ValueError(
             "Prediction probability must be numeric."
