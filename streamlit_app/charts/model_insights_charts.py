@@ -144,6 +144,7 @@ def build_local_prediction_explanation_chart(
     *,
     base_probability: float,
     predicted_probability: float,
+    decision_threshold: float,
 ) -> go.Figure:
     """
     Build a horizontal local prediction explanation chart.
@@ -164,6 +165,10 @@ def build_local_prediction_explanation_chart(
     _validate_probability(
         predicted_probability,
         "predicted_probability",
+    )
+    _validate_probability(
+        decision_threshold,
+        "decision_threshold",
     )
 
     chart_data = (
@@ -207,7 +212,7 @@ def build_local_prediction_explanation_chart(
                 },
             },
             text=[
-                f"+{value:.1%}" if value > 0 else ""
+                f"+{value:.3f}" if value > 0 else ""
                 for value in positive_values
             ],
             textposition="outside",
@@ -218,7 +223,7 @@ def build_local_prediction_explanation_chart(
             cliponaxis=False,
             hovertemplate=(
                 "<b>%{y}</b><br>"
-                "Risk contribution: %{x:+.1%}"
+                "SHAP contribution: %{x:+.3f} log-odds"
                 "<extra></extra>"
             ),
         )
@@ -238,7 +243,7 @@ def build_local_prediction_explanation_chart(
                 },
             },
             text=[
-                f"{value:.1%}" if value < 0 else ""
+                f"{value:.3f}" if value < 0 else ""
                 for value in negative_values
             ],
             textposition="outside",
@@ -249,7 +254,7 @@ def build_local_prediction_explanation_chart(
             cliponaxis=False,
             hovertemplate=(
                 "<b>%{y}</b><br>"
-                "Risk contribution: %{x:+.1%}"
+                "SHAP contribution: %{x:+.3f} log-odds"
                 "<extra></extra>"
             ),
         )
@@ -263,11 +268,12 @@ def build_local_prediction_explanation_chart(
         },
     )
 
-    net_risk_level = _get_net_risk_level(
-        predicted_probability
+    prediction_label = _get_prediction_label(
+        predicted_probability,
+        decision_threshold,
     )
-    net_risk_color = _get_net_risk_color(
-        predicted_probability
+    prediction_color = _get_prediction_color(
+        prediction_label
     )
 
     figure.add_annotation(
@@ -278,9 +284,9 @@ def build_local_prediction_explanation_chart(
         text=(
             f"<b>Net Risk: "
             f"{predicted_probability:.1%}</b><br>"
-            f"<span style='color:{net_risk_color}'>"
-            f"{net_risk_level}"
-            "</span>"
+            f"<span style='color:{prediction_color}'>"
+            f"{prediction_label}</span><br>"
+            f"<span>Threshold: {decision_threshold:.1%}</span>"
         ),
         showarrow=False,
         align="right",
@@ -297,7 +303,7 @@ def build_local_prediction_explanation_chart(
         y=-0.17,
         xref="x",
         yref="paper",
-        text=f"Base rate: {base_probability:.1%}",
+        text=f"Baseline model probability: {base_probability:.1%}",
         showarrow=False,
         align="left",
         xanchor="left",
@@ -334,7 +340,7 @@ def build_local_prediction_explanation_chart(
         },
         xaxis={
             "title": {
-                "text": "Feature Contribution to Delay Risk",
+                "text": "SHAP Contribution to Raw Model Score (log-odds)",
                 "font": {
                     "color": COLORS["text_muted"],
                     "size": PLOTLY_FONT_SIZE_TITLE,
@@ -345,7 +351,7 @@ def build_local_prediction_explanation_chart(
                 -axis_limit,
                 axis_limit,
             ],
-            "tickformat": "+.0%",
+            "tickformat": "+.2f",
             "showgrid": True,
             "gridcolor": "rgba(90, 110, 145, 0.20)",
             "gridwidth": 1,
@@ -371,38 +377,23 @@ def build_local_prediction_explanation_chart(
     return figure
 
 
-def _get_net_risk_level(
+def _get_prediction_label(
     probability: float,
+    decision_threshold: float,
 ) -> str:
-    """Return the operational risk category."""
-
-    if probability < 0.30:
-        return "LOW"
-
-    if probability < 0.60:
-        return "MEDIUM"
-
-    if probability < 0.80:
-        return "HIGH"
-
-    return "CRITICAL"
+    """Return the frozen binary model decision."""
+    if probability >= decision_threshold:
+        return "DELAY ALERT"
+    return "ON-TIME PREDICTION"
 
 
-def _get_net_risk_color(
-    probability: float,
+def _get_prediction_color(
+    prediction_label: str,
 ) -> str:
-    """Return the risk display color."""
-
-    risk_colors = {
-        "LOW": "#69b27f",
-        "MEDIUM": "#d0ad63",
-        "HIGH": "#d47a6b",
-        "CRITICAL": "#a95656",
-    }
-
-    return risk_colors[
-        _get_net_risk_level(probability)
-    ]
+    """Return the binary prediction display color."""
+    if prediction_label == "DELAY ALERT":
+        return _POSITIVE_COLOR
+    return _NEGATIVE_COLOR
 
 
 def _validate_columns(

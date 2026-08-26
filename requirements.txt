@@ -5,7 +5,7 @@ pandas
 numpy
 scipy
 scikit-posthocs
-pyspark
+# Spark is provided by Databricks Connect or the Databricks runtime.
 
 # ==========================================
 # Machine Learning
@@ -15,11 +15,6 @@ xgboost==2.1.4
 joblib
 mlflow
 shap
-
-# ==========================================
-# Optimization
-# ==========================================
-ortools
 
 # ==========================================
 # Visualization
@@ -34,6 +29,7 @@ streamlit
 fastapi
 uvicorn
 databricks-sql-connector
+databricks-sdk
 pydantic-settings
 python-dotenv
 

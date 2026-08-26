@@ -38,8 +38,3 @@ def build_team_panel_html(section: TeamSection) -> str:
         body_html=body_html,
         panel_class="project-info-panel--team",
     )
-
-
-def render_team_panel(section: TeamSection) -> None:
-    """Render the team members panel."""
-    st.markdown(build_team_panel_html(section), unsafe_allow_html=True)

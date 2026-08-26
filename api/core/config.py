@@ -47,12 +47,18 @@ class Settings(BaseSettings):
     )
 
     # ------------------------------------------------------------------
-    # Tables reserved for upcoming endpoints
+    # Model evaluation and explainability assets
     # ------------------------------------------------------------------
 
     databricks_clean_table: str = "flights_clean"
-    databricks_predictions_table: str = "flight_predictions"
     databricks_insights_table: str = "flight_dashboard_insights"
+    databricks_local_insights_table: str = (
+        "flight_delay_shap_local_explanation"
+    )
+    databricks_model_bundle_path: str = (
+        "/Volumes/workspace/default/flight_delay_capstone/"
+        "models/xgboost_final/model_bundle.joblib"
+    )
 
     model_config = SettingsConfigDict(
         env_file="api/.env",
@@ -102,6 +108,16 @@ class Settings(BaseSettings):
     def prioritization_evaluation_table_full_name(self) -> str:
         """Fully qualified prioritization evaluation table."""
         return self._qualified_table(self.databricks_prioritization_evaluation_table)
+
+    @property
+    def insights_table_full_name(self) -> str:
+        """Fully qualified global SHAP table for Model Insights."""
+        return self._qualified_table(self.databricks_insights_table)
+
+    @property
+    def local_insights_table_full_name(self) -> str:
+        """Fully qualified local SHAP explanation table."""
+        return self._qualified_table(self.databricks_local_insights_table)
 
 
 @lru_cache

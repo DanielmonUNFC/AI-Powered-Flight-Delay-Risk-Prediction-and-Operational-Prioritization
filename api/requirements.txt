@@ -7,3 +7,11 @@ pydantic==2.11.7
 pydantic-settings==2.10.1
 
 python-dotenv==1.1.1
+
+# Required to download and execute the frozen Notebook 08 model bundle.
+databricks-sdk==0.61.0
+joblib==1.5.1
+numpy==2.2.6
+pandas==2.3.1
+scikit-learn==1.7.1
+xgboost==2.1.4

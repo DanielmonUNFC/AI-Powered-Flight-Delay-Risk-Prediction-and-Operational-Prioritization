@@ -120,6 +120,80 @@ def _build_prioritization_query(display_limit: int) -> str:
     """
 
 
+def _build_evaluation_query() -> str:
+    """Return the Notebook 10 comparison used to answer RQ5."""
+    return f"""
+        SELECT
+            strategy,
+            effective_capacity_k,
+            captured_delayed_flights,
+            random_p_at_least_optimized
+        FROM {settings.prioritization_evaluation_table_full_name}
+        WHERE capacity_k = ?
+        ORDER BY strategy
+    """
+
+
+def _build_rq5_evaluation(
+    rows: list[dict[str, Any]],
+    capacity_k: int,
+) -> dict[str, Any]:
+    """Build a concise, explicit RQ5 comparison for the dashboard."""
+    strategies = {
+        str(_row_value(row, "strategy")): row
+        for row in rows
+    }
+    required = {
+        "Constrained Optimized Selection",
+        "Top-K Probability Baseline",
+        "Random Baseline",
+    }
+    missing = sorted(required - set(strategies))
+    if missing:
+        raise RuntimeError(
+            "The RQ5 evaluation dataset is incomplete. Missing strategies: "
+            f"{missing}. Run Notebook 10 again."
+        )
+
+    optimized = strategies["Constrained Optimized Selection"]
+    simple = strategies["Top-K Probability Baseline"]
+    random = strategies["Random Baseline"]
+    optimized_delays = float(_row_value(optimized, "captured_delayed_flights"))
+    simple_delays = float(_row_value(simple, "captured_delayed_flights"))
+    random_mean = float(_row_value(random, "captured_delayed_flights"))
+    random_p_value = _row_value(random, "random_p_at_least_optimized")
+    random_p_value = (
+        float(random_p_value) if random_p_value is not None else None
+    )
+    beats_random = (
+        optimized_delays > random_mean
+        and random_p_value is not None
+        and random_p_value < 0.05
+    )
+    beats_simple = optimized_delays > simple_delays
+
+    if beats_random and beats_simple:
+        verdict = "Supported"
+    elif beats_random:
+        verdict = "Partially supported: beats random, not simple rule"
+    else:
+        verdict = "Not supported"
+
+    return {
+        "capacity_k": capacity_k,
+        "effective_capacity_k": int(
+            _row_value(optimized, "effective_capacity_k")
+        ),
+        "optimized_delays": optimized_delays,
+        "simple_rule_delays": simple_delays,
+        "random_mean_delays": random_mean,
+        "random_p_value": random_p_value,
+        "beats_random": beats_random,
+        "beats_simple_rule": beats_simple,
+        "verdict": verdict,
+    }
+
+
 def get_prioritization_data(
     capacity_k: int = DEFAULT_CAPACITY_K,
     *,
@@ -146,28 +220,37 @@ def get_prioritization_data(
         parameters=[safe_capacity_k],
     )
     if not summary_rows:
-        summary = {
-            "flights_in_queue": 0,
-            "critical_risk": 0,
-            "high_risk": 0,
-            "flights_selected": 0,
-            "capacity_k": safe_capacity_k,
-        }
-    else:
-        summary_row = summary_rows[0]
-        summary = {
-            "flights_in_queue": int(summary_row.get("flights_in_queue") or 0),
-            "critical_risk": int(summary_row.get("critical_risk") or 0),
-            "high_risk": int(summary_row.get("high_risk") or 0),
-            "flights_selected": int(summary_row.get("flights_selected") or 0),
-            "capacity_k": safe_capacity_k,
-        }
+        raise RuntimeError(
+            "The prioritization dataset returned no summary. "
+            "Run Notebook 10 again."
+        )
+    summary_row = summary_rows[0]
+    flights_in_queue = int(_row_value(summary_row, "flights_in_queue"))
+    if flights_in_queue < 1:
+        raise RuntimeError(
+            "The prioritization queue is empty. Run Notebook 10 again."
+        )
+    summary = {
+        "flights_in_queue": flights_in_queue,
+        "critical_risk": int(_row_value(summary_row, "critical_risk") or 0),
+        "high_risk": int(_row_value(summary_row, "high_risk") or 0),
+        "flights_selected": int(_row_value(summary_row, "flights_selected") or 0),
+        "capacity_k": safe_capacity_k,
+    }
 
     rows = execute_query(
         _build_prioritization_query(safe_display_limit),
         parameters=[safe_capacity_k],
     )
     flights = [_map_ranking_row(row) for row in rows]
+    evaluation_rows = execute_query(
+        _build_evaluation_query(),
+        parameters=[safe_capacity_k],
+    )
+    rq5_evaluation = _build_rq5_evaluation(
+        evaluation_rows,
+        safe_capacity_k,
+    )
 
     payload = {
         "capacity_k": safe_capacity_k,
@@ -177,6 +260,7 @@ def get_prioritization_data(
         "queue_size": summary["flights_in_queue"],
         "display_limit": safe_display_limit,
         "summary": summary,
+        "rq5_evaluation": rq5_evaluation,
         "source_table": settings.prioritization_results_table_full_name,
         "order_by": "priority_rank ASC",
         "selected_only": True,

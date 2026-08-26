@@ -25,7 +25,7 @@ ICON_METHODOLOGY: Final[str] = "methodology"
 ICON_TEAM: Final[str] = "team"
 ICON_TECH_STACK: Final[str] = "tech"
 
-# Upcoming tabs
+# Predictive and operational tabs
 ICON_DELAY_PREDICTION: Final[str] = "delay_prediction"
 ICON_MODEL_INSIGHTS: Final[str] = "model_insights"
 ICON_PRIORITIZATION: Final[str] = "prioritization"
@@ -39,7 +39,6 @@ TECH_ICON_PYSPARK: Final[str] = "pyspark"
 TECH_ICON_PYTHON: Final[str] = "python"
 TECH_ICON_XGBOOST: Final[str] = "xgboost"
 TECH_ICON_SHAP: Final[str] = "shap"
-TECH_ICON_ORTOOLS: Final[str] = "ortools"
 TECH_ICON_FASTAPI: Final[str] = "fastapi"
 TECH_ICON_STREAMLIT: Final[str] = "streamlit"
 TECH_ICON_GITHUB: Final[str] = "github"
