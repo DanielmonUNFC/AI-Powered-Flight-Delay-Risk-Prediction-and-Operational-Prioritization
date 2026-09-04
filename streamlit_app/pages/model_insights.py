@@ -42,6 +42,10 @@ def render_model_insights_page() -> None:
         return
 
     with global_column:
+        st.markdown(
+            '<span class="model-insights-layout-marker"></span>',
+            unsafe_allow_html=True,
+        )
         try:
             feature_importance = insights_data["global_importance"]
             if feature_importance.empty:

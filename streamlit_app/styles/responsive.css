@@ -19,15 +19,19 @@
     }
 
     html,
-    body,
-    [data-testid="stAppViewContainer"],
-    [data-testid="stMain"] {
-        min-height: 100%;
+    body {
+        height: auto !important;
+        min-height: 100% !important;
         overflow-x: hidden !important;
+        overflow-y: auto !important;
     }
 
+    [data-testid="stAppViewContainer"],
     [data-testid="stMain"] {
-        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100dvh !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     .block-container {
@@ -115,6 +119,31 @@
         min-height: 0 !important;
         max-height: none !important;
         overflow: visible !important;
+    }
+
+    /* Safari can omit the second Streamlit column from the document height
+       after a horizontal group is changed to flex-column. Use normal block
+       flow for Model Insights so both chart cards extend the page naturally. */
+    [data-testid="stHorizontalBlock"]:has(.model-insights-layout-marker) {
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="stHorizontalBlock"]:has(.model-insights-layout-marker)
+        > [data-testid="column"] {
+        display: block !important;
+        width: 100% !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .model-insights-layout-marker {
+        display: block;
+        width: 0;
+        height: 0;
+        overflow: hidden;
     }
 
     /* Undo the viewport-locked shells. The document becomes the only vertical

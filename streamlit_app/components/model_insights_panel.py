@@ -40,8 +40,10 @@ _MODEL_INSIGHTS_RESIZE_SCRIPT = """
         var isGlobal = plot.layout && plot.layout.meta && plot.layout.meta.chart_kind === "global_shap";
         var update = { width: width };
         if (width <= 700 && (isLocal || isGlobal)) {
-            update["margin.l"] = Math.min(145, Math.max(105, Math.round(width * 0.36)));
-            update["margin.r"] = 42;
+            update["margin.l"] = isLocal
+                ? Math.min(180, Math.max(160, Math.round(width * 0.48)))
+                : Math.min(165, Math.max(145, Math.round(width * 0.44)));
+            update["margin.r"] = 36;
             update["margin.t"] = isLocal ? 72 : 12;
             update["margin.b"] = 52;
             update["xaxis.tickfont.size"] = 10;
