@@ -122,7 +122,8 @@ BUSINESS_OBJECTIVE: Final[InfoSection] = InfoSection(
     icon_id=ICON_OBJECTIVE,
     paragraphs=(
         (
-            "Develop an AI-powered decision support system that estimates the probability "
+            "Develop a machine-learning-based flight delay risk prediction system that "
+            "estimates the probability "
             "that a scheduled flight will arrive at least 15 minutes late (ArrDel15) before "
             "departure. The system helps airline operations managers prioritize high-risk "
             "flights when operational review capacity is limited—moving from reactive "

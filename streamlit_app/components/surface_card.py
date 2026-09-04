@@ -66,6 +66,25 @@ def surface_panel_styles(extra_css: str = "") -> str:
             display: flex;
             flex-direction: column;
         }}
+        @media (max-width: 700px) {{
+            .surface-panel-card {{
+                padding: 10px 12px;
+            }}
+            .surface-panel-card__header {{
+                margin-bottom: 8px;
+                font-size: 0.82rem;
+                line-height: 1.25;
+                letter-spacing: 0.025em;
+            }}
+            .surface-panel-card__header-title {{
+                gap: 6px;
+            }}
+            .panel-icon,
+            .panel-icon svg {{
+                width: 14px;
+                height: 14px;
+            }}
+        }}
         {extra_css}
     """
 

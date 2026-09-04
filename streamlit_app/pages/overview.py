@@ -13,7 +13,7 @@ def render_overview_page() -> None:
     st.markdown(
         """
         <div class="page-subtitle">
-            AI-powered risk prediction and operational decision support • Dataset: BTS 2025 Full Year
+            Flight delay risk prediction and operational prioritization • Dataset: BTS 2025 Full Year
         </div>
         """,
         unsafe_allow_html=True,

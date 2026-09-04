@@ -45,6 +45,10 @@ def render_operational_prioritization_page() -> None:
 
     ranking, summary, table_meta, rq5_evaluation = page_data
 
+    st.markdown(
+        '<span class="prioritization-summary-marker"></span>',
+        unsafe_allow_html=True,
+    )
     render_prioritization_summary_panel(format_summary_values(summary))
     p_value_text = (
         f"p={rq5_evaluation.random_p_value:.4f}"

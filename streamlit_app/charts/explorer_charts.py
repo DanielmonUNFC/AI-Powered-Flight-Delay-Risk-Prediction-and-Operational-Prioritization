@@ -91,6 +91,13 @@ def create_airline_performance_figure(
         autosize=True,
         hovermode="closest",
         margin={"l": left_margin, "r": 104, "t": 16, "b": 56},
+        meta={
+            "responsive_mobile": True,
+            "desktop_left_margin": left_margin,
+            "desktop_right_margin": 104,
+            "desktop_bottom_margin": 56,
+            "desktop_y_tick_size": label_font_size,
+        },
     )
 
 

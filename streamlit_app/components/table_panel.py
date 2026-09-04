@@ -67,6 +67,20 @@ def _base_table_styles() -> str:
         .row-high td {{
             background-color: rgba(245, 158, 11, 0.08);
         }}
+        @media (max-width: 700px) {{
+            .surface-table {{
+                min-width: 680px;
+                font-size: 0.75rem;
+            }}
+            .surface-table thead th,
+            .surface-table tbody td {{
+                padding: 7px 8px;
+            }}
+            .table-footer {{
+                font-size: 0.72rem;
+                line-height: 1.35;
+            }}
+        }}
     """
 
 

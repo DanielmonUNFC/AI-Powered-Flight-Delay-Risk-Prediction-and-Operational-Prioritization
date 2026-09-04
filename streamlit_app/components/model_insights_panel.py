@@ -28,6 +28,54 @@ _MODEL_INSIGHTS_CSS_PATH = (
 _MODEL_INSIGHTS_PANEL_HEIGHT = 560
 _MODEL_INSIGHTS_CHART_HEIGHT = 485
 
+_MODEL_INSIGHTS_RESIZE_SCRIPT = """
+<script>
+(function () {
+    function resizeChart() {
+        var plot = document.querySelector(".js-plotly-plot");
+        var body = document.querySelector(".model-insights-chart");
+        if (!plot || !body || !window.Plotly) return;
+        var width = body.clientWidth;
+        var isLocal = plot.layout && plot.layout.meta && plot.layout.meta.chart_kind === "local_shap";
+        var isGlobal = plot.layout && plot.layout.meta && plot.layout.meta.chart_kind === "global_shap";
+        var update = { width: width };
+        if (width <= 700 && (isLocal || isGlobal)) {
+            update["margin.l"] = Math.min(145, Math.max(105, Math.round(width * 0.36)));
+            update["margin.r"] = 42;
+            update["margin.t"] = isLocal ? 72 : 12;
+            update["margin.b"] = 52;
+            update["xaxis.tickfont.size"] = 10;
+            update["xaxis.title.font.size"] = 11;
+            update["yaxis.tickfont.size"] = 10;
+        } else if (isLocal || isGlobal) {
+            update["margin.l"] = isLocal ? 190 : 220;
+            update["margin.r"] = isLocal ? 95 : 65;
+            update["margin.t"] = isLocal ? 62 : 12;
+            update["margin.b"] = isLocal ? 70 : 62;
+            update["xaxis.tickfont.size"] = 13;
+            update["xaxis.title.font.size"] = 14;
+            update["yaxis.tickfont.size"] = 13;
+        }
+        Plotly.relayout(plot, update);
+        Plotly.Plots.resize(plot);
+    }
+    function wait(attempt) {
+        if (window.Plotly && document.querySelector(".js-plotly-plot")) {
+            resizeChart();
+            return;
+        }
+        if (attempt < 25) window.setTimeout(function () { wait(attempt + 1); }, 100);
+    }
+    window.addEventListener("load", function () { wait(0); });
+    window.addEventListener("resize", resizeChart);
+    if (window.ResizeObserver) {
+        new ResizeObserver(resizeChart).observe(document.body);
+    }
+    window.setTimeout(function () { wait(0); }, 150);
+})();
+</script>
+"""
+
 
 def render_global_feature_importance_panel(
     feature_importance: pd.DataFrame,
@@ -128,6 +176,7 @@ def _render_model_insights_chart(
         body_html=body_html,
         height=_MODEL_INSIGHTS_PANEL_HEIGHT,
         extra_css=_model_insights_component_css(),
+        inline_script=_MODEL_INSIGHTS_RESIZE_SCRIPT,
     )
 
 

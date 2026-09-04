@@ -163,6 +163,38 @@ def _summary_panel_css() -> str:
         .prioritization-kpi--selected .prioritization-kpi__prefix {{
             color: {COLORS["success"]};
         }}
+        @media (max-width: 700px) {{
+            html, body {{
+                overflow: hidden;
+            }}
+            .prioritization-summary-panel {{
+                padding: 10px 12px;
+                height: auto;
+                min-height: 0;
+            }}
+            .prioritization-summary-panel .surface-panel-card__header {{
+                margin-bottom: 8px;
+                font-size: 0.82rem;
+                line-height: 1.25;
+            }}
+            .prioritization-summary-grid {{
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }}
+            .surface-card {{
+                padding: 10px 12px;
+            }}
+            .prioritization-kpi {{
+                min-height: 78px;
+                gap: 4px;
+            }}
+            .prioritization-kpi__label {{
+                font-size: 0.78rem;
+            }}
+            .prioritization-kpi__value {{
+                font-size: 1.25rem;
+            }}
+        }}
     """
 
 
@@ -203,6 +235,47 @@ def render_prioritization_summary_panel(summary: dict[str, str]) -> None:
         "</div>"
     )
 
+    responsive_height_script = f"""
+        <script>
+        (function () {{
+            function syncHeight() {{
+                var frame = window.frameElement;
+                if (!frame) return;
+                var width = frame.clientWidth || frame.offsetWidth;
+                var panel = document.querySelector(".prioritization-summary-panel");
+                var height = {_SUMMARY_PANEL_HEIGHT};
+                if (width <= 700 && panel) {{
+                    height = Math.ceil(panel.getBoundingClientRect().height) + 2;
+                }}
+                frame.style.height = height + "px";
+                frame.style.minHeight = height + "px";
+                frame.style.maxHeight = height + "px";
+
+                var htmlContainer = frame.parentElement;
+                var elementContainer = frame.closest(
+                    '[data-testid="stElementContainer"], [data-testid="element-container"]'
+                );
+                [htmlContainer, elementContainer].forEach(function (container) {{
+                    if (!container) return;
+                    container.style.height = height + "px";
+                    container.style.minHeight = height + "px";
+                    container.style.maxHeight = height + "px";
+                    container.style.overflow = "hidden";
+                    container.style.flex = "0 0 " + height + "px";
+                }});
+            }}
+            window.addEventListener("load", syncHeight);
+            window.addEventListener("resize", syncHeight);
+            var panel = document.querySelector(".prioritization-summary-panel");
+            if (window.ResizeObserver && panel) {{
+                new ResizeObserver(syncHeight).observe(panel);
+            }}
+            window.setTimeout(syncHeight, 100);
+            window.setTimeout(syncHeight, 350);
+        }})();
+        </script>
+    """
+
     components.html(
         f"""<!DOCTYPE html>
 <html lang="en">
@@ -215,6 +288,7 @@ def render_prioritization_summary_panel(summary: dict[str, str]) -> None:
 </head>
 <body>
     {panel_html}
+    {responsive_height_script}
 </body>
 </html>""",
         height=_SUMMARY_PANEL_HEIGHT,
