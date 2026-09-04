@@ -28,6 +28,15 @@
 }
 
 @media (max-width: 700px) {
+    .surface-panel-card {
+        padding: 10px 12px;
+    }
+
+    .surface-panel-card__header {
+        font-size: 0.82rem;
+        line-height: 1.25;
+    }
+
     .model-insights-empty-state {
         min-height: 360px;
     }

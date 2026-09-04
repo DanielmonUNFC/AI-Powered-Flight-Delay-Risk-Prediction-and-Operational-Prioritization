@@ -33,6 +33,28 @@ _CHART_RESIZE_SCRIPT = """
         if (width > 0) {
             relayout.width = width;
         }
+        var meta = plot.layout && plot.layout.meta;
+        if (meta && meta.responsive_mobile) {
+            if (width <= 700) {
+                relayout["margin.l"] = Math.min(180, Math.max(118, Math.round(width * 0.34)));
+                relayout["margin.r"] = 48;
+                relayout["margin.b"] = 48;
+                relayout["xaxis.tickangle"] = 0;
+                relayout["xaxis.tickfont.size"] = 10;
+                relayout["xaxis.ticklabelstandoff"] = 5;
+                relayout["yaxis.tickfont.size"] = 11;
+                relayout["yaxis.ticklabelstandoff"] = 8;
+            } else {
+                relayout["margin.l"] = meta.desktop_left_margin;
+                relayout["margin.r"] = meta.desktop_right_margin;
+                relayout["margin.b"] = meta.desktop_bottom_margin;
+                relayout["xaxis.tickangle"] = 0;
+                relayout["xaxis.tickfont.size"] = 13;
+                relayout["xaxis.ticklabelstandoff"] = 12;
+                relayout["yaxis.tickfont.size"] = meta.desktop_y_tick_size;
+                relayout["yaxis.ticklabelstandoff"] = 32;
+            }
+        }
         Plotly.relayout(plot, relayout);
         Plotly.Plots.resize(plot);
     }
@@ -111,6 +133,15 @@ def render_chart_panel(
         }
         .surface-panel-card__body .plotly-graph-div .main-svg {
             overflow: visible;
+        }
+        @media (max-width: 700px) {
+            .surface-panel-card {
+                padding: 10px 12px 8px 12px;
+            }
+            .surface-panel-card__header {
+                font-size: 0.82rem;
+                line-height: 1.25;
+            }
         }
     """
 

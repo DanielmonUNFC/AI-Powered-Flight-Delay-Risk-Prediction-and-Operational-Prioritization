@@ -1,9 +1,9 @@
-# This is a Declarative Automation Bundle definition for AI-Powered-Flight-Delay-Risk-Prediction-and-Operational-Prioritization.
+# Declarative Automation Bundle for Flight-Delay-Risk-Prediction-and-Operational-Prioritization.
 # The Databricks extension requires databricks.yml configuration file.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 
 bundle:
-  name: AI-Powered-Flight-Delay-Risk-Prediction-and-Operational-Prioritization
+  name: Flight-Delay-Risk-Prediction-and-Operational-Prioritization
 
 targets:
   dev:

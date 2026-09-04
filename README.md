@@ -1,10 +1,10 @@
-# AI-Powered Flight Delay Risk Prediction and Operational Prioritization
+# Flight Delay Risk Prediction and Operational Prioritization
 
 ## Overview
 
 This repository contains the Capstone Project developed for the Master of Data Analytics program at the University of Niagara Falls.
 
-The objective of this project is to develop an AI-powered decision support system capable of assisting airline operations managers by predicting flight delay risks and recommending operational prioritization strategies. The proposed solution combines descriptive, diagnostic, predictive, and prescriptive analytics using historical flight information provided by the U.S. Bureau of Transportation Statistics (BTS).
+The objective of this project is to develop a machine-learning-based flight delay risk prediction and operational prioritization system for airline operations managers. The solution combines descriptive, diagnostic, predictive, and prescriptive analytics using historical flight information provided by the U.S. Bureau of Transportation Statistics (BTS).
 
 ---
 
@@ -13,7 +13,7 @@ The objective of this project is to develop an AI-powered decision support syste
 - Analyze historical airline operational performance.
 - Identify factors associated with flight delays.
 - Predict flight delay risk using Machine Learning.
-- Explain model predictions using Explainable AI (SHAP).
+- Explain model predictions using SHAP-based model explainability.
 - Prioritize operational decisions using optimization techniques.
 - Provide business insights through an interactive dashboard.
 
@@ -185,7 +185,7 @@ After changing Notebook 08, rerun **08 → 11**, restart FastAPI, and run:
 python -m pytest -q
 ```
 
-The current model is intended for operational ranking and decision support. Its
+The current model is intended for operational risk ranking and planning. Its
 main limitation is the absence of pre-departure weather, inbound-aircraft status,
 real-time congestion, crew, maintenance, and air-traffic-control information.
 RQ5 is supported at lower operational capacities in the evaluated scenarios, but

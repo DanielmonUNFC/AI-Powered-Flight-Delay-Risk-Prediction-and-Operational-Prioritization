@@ -12,6 +12,7 @@ STYLE_FILES = (
     "project_info.css",
     "delay_prediction.css",
     "prioritization.css",
+    "responsive.css",
 )
 
 

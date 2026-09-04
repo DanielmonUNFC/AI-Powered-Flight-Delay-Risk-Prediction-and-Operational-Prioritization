@@ -52,11 +52,6 @@ def build_global_feature_importance_chart(
             x=chart_data["Importance"],
             y=chart_data["Feature"],
             orientation="h",
-            text=chart_data["Importance"].map(
-                lambda value: f"{value:.1f}"
-            ),
-            textposition="outside",
-            cliponaxis=False,
             marker={
                 "color": chart_data["Importance"],
                 "colorscale": [
@@ -77,8 +72,30 @@ def build_global_feature_importance_chart(
         )
     )
 
+    # Keep global SHAP values visible when Plotly resizes inside the
+    # Streamlit component iframe. Unlike local contributions, these mean
+    # absolute values are always non-negative and therefore have no sign.
+    for feature, importance in zip(
+        chart_data["Feature"],
+        chart_data["Importance"],
+    ):
+        value = float(importance)
+        figure.add_annotation(
+            x=value,
+            y=feature,
+            text=f"{value:.3f}",
+            showarrow=False,
+            xanchor="left",
+            xshift=7,
+            font={
+                "color": COLORS["text_secondary"],
+                "size": PLOTLY_FONT_SIZE_TICK,
+            },
+        )
+
     figure.update_layout(
         height=_CHART_HEIGHT,
+        meta={"chart_kind": "global_shap"},
         margin={
             "l": _GLOBAL_LEFT_MARGIN,
             "r": 65,
@@ -211,16 +228,6 @@ def build_local_prediction_explanation_chart(
                     "width": 1,
                 },
             },
-            text=[
-                f"+{value:.3f}" if value > 0 else ""
-                for value in positive_values
-            ],
-            textposition="outside",
-            textfont={
-                "color": COLORS["text_secondary"],
-                "size": PLOTLY_FONT_SIZE_TICK,
-            },
-            cliponaxis=False,
             hovertemplate=(
                 "<b>%{y}</b><br>"
                 "SHAP contribution: %{x:+.3f} log-odds"
@@ -242,16 +249,6 @@ def build_local_prediction_explanation_chart(
                     "width": 1,
                 },
             },
-            text=[
-                f"{value:.3f}" if value < 0 else ""
-                for value in negative_values
-            ],
-            textposition="outside",
-            textfont={
-                "color": COLORS["text_secondary"],
-                "size": PLOTLY_FONT_SIZE_TICK,
-            },
-            cliponaxis=False,
             hovertemplate=(
                 "<b>%{y}</b><br>"
                 "SHAP contribution: %{x:+.3f} log-odds"
@@ -259,6 +256,27 @@ def build_local_prediction_explanation_chart(
             ),
         )
     )
+
+    # Plotly may suppress outside bar text when this figure is resized inside
+    # a Streamlit component iframe. Explicit annotations keep one signed value
+    # visible at the end of every bar at all supported viewport widths.
+    for feature, contribution in zip(
+        chart_data["Feature"],
+        chart_data["Contribution"],
+    ):
+        value = float(contribution)
+        figure.add_annotation(
+            x=value,
+            y=feature,
+            text=f"{value:+.3f}",
+            showarrow=False,
+            xanchor="left" if value >= 0 else "right",
+            xshift=7 if value >= 0 else -7,
+            font={
+                "color": COLORS["text_secondary"],
+                "size": PLOTLY_FONT_SIZE_TICK,
+            },
+        )
 
     figure.add_vline(
         x=0,
@@ -315,6 +333,7 @@ def build_local_prediction_explanation_chart(
 
     figure.update_layout(
         height=_CHART_HEIGHT,
+        meta={"chart_kind": "local_shap"},
         barmode="overlay",
         margin={
             "l": _LOCAL_LEFT_MARGIN,

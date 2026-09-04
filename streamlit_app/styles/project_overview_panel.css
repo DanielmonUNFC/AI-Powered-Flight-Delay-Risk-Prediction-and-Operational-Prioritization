@@ -38,7 +38,7 @@ body {
     gap: var(--project-overview-gap);
     box-sizing: border-box;
     grid-template-columns: 1.35fr 0.95fr 0.95fr;
-    grid-template-rows: minmax(0, 0.24fr) minmax(0, 0.16fr) minmax(0, 0.46fr) minmax(0, 0.14fr);
+    grid-template-rows: minmax(0, 0.28fr) minmax(0, 0.15fr) minmax(0, 0.43fr) minmax(0, 0.14fr);
     grid-template-areas:
         "objective dataset target"
         "objective research research"
@@ -133,7 +133,7 @@ body {
 }
 
 .project-info-panel--objective .project-info-panel__body {
-    overflow-y: auto;
+    overflow: visible;
 }
 
 .project-info-panel--dataset .project-info-panel__body,
@@ -141,13 +141,13 @@ body {
 .project-info-panel--research .project-info-panel__body {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .project-fact {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .project-fact__row {
@@ -155,7 +155,7 @@ body {
     grid-template-columns: minmax(88px, 0.9fr) minmax(0, 1.4fr);
     gap: 8px;
     align-items: baseline;
-    padding: 5px 8px;
+    padding: 4px 8px;
     border-radius: 6px;
     background: rgba(8, 13, 26, 0.35);
     border: 1px solid rgba(30, 45, 66, 0.8);
@@ -425,4 +425,60 @@ body {
     color: var(--text-secondary);
     text-align: center;
     line-height: 1.15;
+}
+
+@media (max-width: 768px) {
+    html,
+    body {
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+
+    .project-overview-shell,
+    .project-overview-grid {
+        height: auto !important;
+        min-height: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .project-overview-shell {
+        padding: 0;
+    }
+
+    .project-overview-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+            "objective"
+            "dataset"
+            "target"
+            "research"
+            "methodology"
+            "tech"
+            "team";
+        gap: 12px;
+    }
+
+    .project-info-panel,
+    .project-info-panel__body {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .project-rq,
+    .project-team--strip,
+    .project-tech {
+        grid-template-columns: 1fr;
+    }
+
+    .methodology-pipeline--dual {
+        flex-direction: column;
+    }
 }

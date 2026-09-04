@@ -1,0 +1,212 @@
+/* Responsive app-shell overrides. Loaded last so mobile rules can safely undo
+   the viewport-locked desktop dashboard layouts without duplicating pages. */
+
+@media (max-width: 768px) {
+    :root {
+        --layout-section-gap: 12px;
+        --tab-content-offset: 10px;
+        --font-size-tab: 0.875rem;
+        --font-size-subtitle: 0.9375rem;
+        --font-size-overline: 0.8125rem;
+        --font-size-label: 0.875rem;
+        --font-size-body: 0.9375rem;
+        --font-size-body-sm: 0.875rem;
+        --font-size-control: 0.9375rem;
+        --font-size-caption: 0.8125rem;
+        --font-size-metric: 1.55rem;
+        --font-size-display: 1rem;
+        --line-height-body: 1.45;
+    }
+
+    html,
+    body,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"] {
+        min-height: 100%;
+        overflow-x: hidden !important;
+    }
+
+    [data-testid="stMain"] {
+        overflow-y: auto !important;
+    }
+
+    .block-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-inline: auto !important;
+        padding: 0.5rem 0.75rem 1.5rem !important;
+    }
+
+    [data-baseweb="tab-list"] {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: thin;
+    }
+
+    [data-baseweb="tab"] {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+    }
+
+    div[data-testid="stPlotlyChart"],
+    div[data-testid="stPlotlyChart"] > div,
+    div[data-testid="stPlotlyChart"] .js-plotly-plot,
+    div[data-testid="stPlotlyChart"] .plot-container,
+    div[data-testid="stPlotlyChart"] .svg-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .app-header {
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+    }
+
+    .app-header__status {
+        padding: 3px 8px;
+        font-size: 0.75rem;
+    }
+
+    .surface-card,
+    .kpi-card,
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        padding: 12px 14px !important;
+    }
+
+    .kpi-card {
+        min-height: 92px;
+    }
+
+    .insight-card {
+        align-items: flex-start;
+        padding: 14px;
+        gap: 10px;
+    }
+
+    /* Streamlit columns don't consistently collapse when custom height/flex
+       rules are present, so explicitly stack every column group on phones. */
+    [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] > div,
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] > div > [data-testid="stVerticalBlock"] {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /* Undo the viewport-locked shells. The document becomes the only vertical
+       scroller, which keeps controls and tab content reachable on mobile. */
+    [data-testid="stHorizontalBlock"]:has(.explorer-filter-panel-marker),
+    [data-testid="stHorizontalBlock"]:has(.delay-prediction-filter-panel-marker),
+    [data-testid="stVerticalBlock"]:has(.prioritization-layout-marker) {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="column"]:has(.explorer-filter-panel-marker),
+    [data-testid="column"]:has(.delay-prediction-filter-panel-marker),
+    [data-testid="column"]:has(.explorer-main-panel-marker),
+    [data-testid="column"]:has(.delay-prediction-main-panel-marker) {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="column"]:has(.delay-prediction-filter-panel-marker) div.stButton {
+        position: static !important;
+    }
+
+    [data-testid="column"]:has(.explorer-main-panel-marker)
+        > div > [data-testid="stVerticalBlock"]
+        > [data-testid="stHorizontalBlock"]:has(.explorer-top-panel) {
+        flex-basis: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+
+    [data-testid="column"]:has(.explorer-top-panel) [data-testid="stHtml"],
+    [data-testid="column"]:has(.explorer-top-panel) [data-testid="stHtml"] iframe {
+        height: 380px !important;
+        min-height: 380px !important;
+        max-height: none !important;
+    }
+
+    [data-testid="column"]:has(.explorer-main-panel-marker)
+        > div > [data-testid="stVerticalBlock"]
+        > [data-testid="element-container"]:has(.explorer-flight-log-marker)
+        + [data-testid="element-container"],
+    [data-testid="column"]:has(.explorer-main-panel-marker) [data-testid="stHtml"]:last-of-type,
+    [data-testid="column"]:has(.explorer-main-panel-marker) [data-testid="stHtml"]:last-of-type iframe {
+        height: 520px !important;
+        min-height: 520px !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="column"]:has(.delay-prediction-main-panel-marker)
+        > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:nth-of-type(2),
+    [data-testid="column"]:has(.delay-prediction-main-panel-marker)
+        > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:nth-of-type(2) [data-testid="stHtml"] {
+        height: 360px !important;
+        min-height: 360px !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    [data-testid="column"]:has(.delay-prediction-main-panel-marker)
+        > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:nth-of-type(3),
+    [data-testid="column"]:has(.delay-prediction-main-panel-marker)
+        > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"]:nth-of-type(3) [data-testid="stHtml"] {
+        height: 250px !important;
+        min-height: 250px !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .prioritization-summary-grid,
+    .prioritization-constraints__grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    [data-testid="element-container"]:has(.prioritization-table-marker)
+        + [data-testid="element-container"],
+    [data-testid="element-container"]:has(.prioritization-table-marker)
+        + [data-testid="element-container"] iframe {
+        height: 560px !important;
+        min-height: 560px !important;
+        max-height: none !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .app-header {
+        flex-direction: column;
+    }
+}
