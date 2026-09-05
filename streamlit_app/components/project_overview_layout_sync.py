@@ -25,10 +25,11 @@ _HEIGHT_SYNC_SCRIPT = """
         );
         const iframe = iframeContainer ? iframeContainer.querySelector("iframe") : null;
         if (!iframe) return;
+        if (iframe.getBoundingClientRect().width <= 768) return;
 
         const chromeHeight = cssPx("--project-overview-chrome-height", 230);
         const panelHeight = Math.max(
-            680,
+            820,
             win.innerHeight - chromeHeight - BOTTOM_PADDING
         );
 

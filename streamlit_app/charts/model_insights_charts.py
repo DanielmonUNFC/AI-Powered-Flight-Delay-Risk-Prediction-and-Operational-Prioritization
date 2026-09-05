@@ -318,7 +318,7 @@ def build_local_prediction_explanation_chart(
 
     figure.add_annotation(
         x=-axis_limit * 0.95,
-        y=-0.17,
+        y=-0.12,
         xref="x",
         yref="paper",
         text=f"Baseline model probability: {base_probability:.1%}",
@@ -339,7 +339,7 @@ def build_local_prediction_explanation_chart(
             "l": _LOCAL_LEFT_MARGIN,
             "r": 95,
             "t": 62,
-            "b": 70,
+            "b": 88,
             "pad": 4,
         },
         paper_bgcolor="rgba(0, 0, 0, 0)",

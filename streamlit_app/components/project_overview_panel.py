@@ -19,7 +19,7 @@ from styles.typography import typography_css_variables
 _OVERVIEW_PANEL_CSS_PATH = (
     Path(__file__).resolve().parent.parent / "styles" / "project_overview_panel.css"
 )
-_DEFAULT_PANEL_HEIGHT = 760
+_DEFAULT_PANEL_HEIGHT = 820
 
 
 @lru_cache(maxsize=1)
@@ -89,6 +89,25 @@ def render_project_overview_panel(
             try {
                 var frame = window.frameElement;
                 if (!frame) return;
+                var grid = document.querySelector(".project-overview-grid");
+                var isMobile = frame.getBoundingClientRect().width <= 768;
+
+                if (isMobile && grid) {
+                    document.documentElement.style.height = "auto";
+                    document.body.style.height = "auto";
+                    var contentHeight = Math.ceil(grid.getBoundingClientRect().height + 2);
+                    if (contentHeight <= 0) return;
+                    frame.style.height = contentHeight + "px";
+                    frame.style.minHeight = contentHeight + "px";
+                    frame.style.maxHeight = contentHeight + "px";
+                    var container = frame.closest('[data-testid="element-container"]');
+                    if (container) {
+                        container.style.height = contentHeight + "px";
+                        container.style.minHeight = contentHeight + "px";
+                    }
+                    return;
+                }
+
                 var frameHeight = frame.clientHeight || frame.offsetHeight;
                 if (frameHeight <= 0) return;
                 document.documentElement.style.height = frameHeight + "px";
@@ -99,9 +118,12 @@ def render_project_overview_panel(
         }
         window.addEventListener("load", syncFrameHeight);
         window.addEventListener("resize", syncFrameHeight);
-        if (window.ResizeObserver && window.frameElement) {
-            new ResizeObserver(syncFrameHeight).observe(window.frameElement);
+        if (window.ResizeObserver) {
+            var grid = document.querySelector(".project-overview-grid");
+            if (grid) new ResizeObserver(syncFrameHeight).observe(grid);
         }
+        window.setTimeout(syncFrameHeight, 150);
+        window.setTimeout(syncFrameHeight, 500);
     })();
     </script>
     """

@@ -33,7 +33,18 @@
 [data-testid="stVerticalBlock"]:has(.project-overview-layout-marker)
     > [data-testid="element-container"]:has(.project-overview-iframe-marker)
     + [data-testid="element-container"] {
-    min-height: 680px;
+    min-height: 820px;
+}
+
+@media (max-width: 768px) {
+    [data-testid="stVerticalBlock"]:has(.project-overview-layout-marker)
+        > [data-testid="element-container"]:has(.project-overview-iframe-marker)
+        + [data-testid="element-container"] {
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        overflow: visible;
+    }
 }
 
 [data-testid="stVerticalBlock"]:has(.project-overview-layout-marker)

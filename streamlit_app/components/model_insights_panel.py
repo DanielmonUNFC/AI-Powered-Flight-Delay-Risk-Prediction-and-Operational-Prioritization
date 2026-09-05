@@ -45,7 +45,7 @@ _MODEL_INSIGHTS_RESIZE_SCRIPT = """
                 : Math.min(165, Math.max(145, Math.round(width * 0.44)));
             update["margin.r"] = 36;
             update["margin.t"] = isLocal ? 72 : 12;
-            update["margin.b"] = 52;
+            update["margin.b"] = isLocal ? 76 : 52;
             update["xaxis.tickfont.size"] = 10;
             update["xaxis.title.font.size"] = 11;
             update["yaxis.tickfont.size"] = 10;
@@ -53,7 +53,7 @@ _MODEL_INSIGHTS_RESIZE_SCRIPT = """
             update["margin.l"] = isLocal ? 190 : 220;
             update["margin.r"] = isLocal ? 95 : 65;
             update["margin.t"] = isLocal ? 62 : 12;
-            update["margin.b"] = isLocal ? 70 : 62;
+            update["margin.b"] = isLocal ? 88 : 62;
             update["xaxis.tickfont.size"] = 13;
             update["xaxis.title.font.size"] = 14;
             update["yaxis.tickfont.size"] = 13;
