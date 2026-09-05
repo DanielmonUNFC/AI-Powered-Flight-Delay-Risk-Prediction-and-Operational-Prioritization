@@ -9,7 +9,6 @@ from styles.theme import COLORS
 from styles.typography import (
     PLOTLY_FONT_SIZE,
     PLOTLY_FONT_SIZE_ANNOTATION,
-    PLOTLY_FONT_SIZE_CAPTION,
     PLOTLY_FONT_SIZE_TICK,
     PLOTLY_FONT_SIZE_TITLE,
 )
@@ -304,7 +303,8 @@ def build_local_prediction_explanation_chart(
             f"{predicted_probability:.1%}</b><br>"
             f"<span style='color:{prediction_color}'>"
             f"{prediction_label}</span><br>"
-            f"<span>Threshold: {decision_threshold:.1%}</span>"
+            f"<span>Threshold: {decision_threshold:.1%} · "
+            f"Baseline: {base_probability:.1%}</span>"
         ),
         showarrow=False,
         align="right",
@@ -316,21 +316,6 @@ def build_local_prediction_explanation_chart(
         },
     )
 
-    figure.add_annotation(
-        x=-axis_limit * 0.95,
-        y=-0.12,
-        xref="x",
-        yref="paper",
-        text=f"Baseline model probability: {base_probability:.1%}",
-        showarrow=False,
-        align="left",
-        xanchor="left",
-        font={
-            "size": PLOTLY_FONT_SIZE_CAPTION,
-            "color": COLORS["text_muted"],
-        },
-    )
-
     figure.update_layout(
         height=_CHART_HEIGHT,
         meta={"chart_kind": "local_shap"},
@@ -339,7 +324,7 @@ def build_local_prediction_explanation_chart(
             "l": _LOCAL_LEFT_MARGIN,
             "r": 95,
             "t": 62,
-            "b": 88,
+            "b": 70,
             "pad": 4,
         },
         paper_bgcolor="rgba(0, 0, 0, 0)",
