@@ -9,7 +9,6 @@ from charts.explorer_charts import (
     create_airline_performance_figure,
 )
 from components.chart_panel import render_chart_panel
-from components.explorer_layout_sync import render_explorer_layout_sync
 from components.filter_panel import render_explorer_filter_query
 from components.table_panel import render_table_panel
 from config.panel_icons import ICON_AIRLINE_CHART, ICON_FLIGHT_LOG, ICON_ROUTES
@@ -29,8 +28,6 @@ def render_flight_explorer_page(df: Optional[pd.DataFrame] = None) -> None:
         """,
         unsafe_allow_html=True,
     )
-    render_explorer_layout_sync()
-
     col_filters, col_main = st.columns([1.05, 3.95], gap="medium")
 
     with col_filters:

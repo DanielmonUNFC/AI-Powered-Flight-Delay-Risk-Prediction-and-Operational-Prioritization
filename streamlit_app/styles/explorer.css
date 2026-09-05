@@ -299,3 +299,45 @@
     min-height: var(--explorer-compact-height) !important;
     max-height: var(--explorer-compact-height) !important;
 }
+
+/* Let the page own vertical scrolling. The former viewport-sized shell hid
+   the detailed flight log whenever browser chrome reduced the usable height. */
+[data-testid="stHorizontalBlock"]:has(.explorer-filter-panel-marker) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    align-items: flex-start !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker),
+[data-testid="column"]:has(.explorer-main-panel-marker),
+[data-testid="column"]:has(.explorer-filter-panel-marker) > div,
+[data-testid="column"]:has(.explorer-main-panel-marker) > div,
+[data-testid="column"]:has(.explorer-filter-panel-marker) > div > [data-testid="stVerticalBlock"],
+[data-testid="column"]:has(.explorer-main-panel-marker) > div > [data-testid="stVerticalBlock"] {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+
+[data-testid="column"]:has(.explorer-filter-panel-marker) {
+    align-self: flex-start !important;
+}
+
+[data-testid="column"]:has(.explorer-main-panel-marker)
+    > div > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:has(.explorer-flight-log-marker)
+    + [data-testid="element-container"],
+[data-testid="column"]:has(.explorer-main-panel-marker)
+    > div > [data-testid="stVerticalBlock"]
+    > [data-testid="element-container"]:last-of-type,
+[data-testid="column"]:has(.explorer-main-panel-marker)
+    [data-testid="stHtml"]:last-of-type,
+[data-testid="column"]:has(.explorer-main-panel-marker)
+    [data-testid="stHtml"]:last-of-type iframe {
+    height: 520px !important;
+    min-height: 520px !important;
+    max-height: 520px !important;
+    flex: 0 0 520px !important;
+}
