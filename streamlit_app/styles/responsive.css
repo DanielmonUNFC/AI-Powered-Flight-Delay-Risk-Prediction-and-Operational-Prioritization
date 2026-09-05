@@ -20,18 +20,32 @@
 
     html,
     body {
-        height: auto !important;
+        width: 100% !important;
+        height: 100% !important;
         min-height: 100% !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
     }
 
-    [data-testid="stAppViewContainer"],
-    [data-testid="stMain"] {
-        height: auto !important;
+    [data-testid="stAppViewContainer"] {
+        height: 100dvh !important;
         min-height: 100dvh !important;
-        max-height: none !important;
-        overflow: visible !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    /* Streamlit's main element must remain the sole vertical scroller.
+       Moving scrolling to body breaks touch scrolling in mobile Chrome and
+       can expose the white document canvas below the app. */
+    [data-testid="stMain"] {
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100dvh !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overflow-anchor: none;
     }
 
     .block-container {
@@ -39,6 +53,7 @@
         max-width: 100% !important;
         margin-inline: auto !important;
         padding: 0.5rem 0.75rem 1.5rem !important;
+        overflow-anchor: none;
     }
 
     [data-baseweb="tab-list"] {
